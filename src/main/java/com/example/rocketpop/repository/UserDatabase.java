@@ -24,10 +24,9 @@ public class UserDatabase implements Database {
 
     private static final String getUserQuery = "SELECT * FROM users WHERE username = ?";
     private static final String getAllUsersQuery = "SELECT * FROM users";
-    private static final String createUserQuery = "INSERT INTO users (username, password) VALUES (?, ?)";
+    private static final String createUserQuery = "INSERT INTO users (first_name, last_name, title, department, email, country, city, location, username, password, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String getUserIdByUsernameQuery = "SELECT id FROM users WHERE username = ?";
-    // TODO:
-    private static final String updateUserQuery = "UPDATE users SET username = ?, password = ? WHERE id = ?";
+    private static final String updateUserQuery = "UPDATE users SET first_name = ?, last_name = ?, title = ?, department = ?, email = ?, country = ?, city = ?, location = ? WHERE id = ?";
     private static final String deleteUserQuery = "DELETE FROM users WHERE id = ?";
     private static final String deleteAllUsersQuery = "DELETE FROM users";
 
@@ -59,10 +58,28 @@ public class UserDatabase implements Database {
     @Override
     public boolean createUser(User user) {
         logger.info("createUser called with username: {}", user.getUsername());
-        Object[] args = {user.getUsername(), user.getPassword()};
-        int count = jdbcTemplate.update(createUserQuery, args);
+        Object[] args = {
+            user.getFirstName(),
+            user.getLastName(),
+            user.getTitle(),
+            user.getDepartment(),
+            user.getEmail(),
+            user.getCountry(),
+            user.getCity(),
+            user.getLocation(),
+            user.getUsername(),
+            user.getPassword(),
+            user.getSalt()
+        };
+        int count = -1;
+        try {
+            count = jdbcTemplate.update(createUserQuery, args);
+        } catch (Exception e) {
+            logger.error("Error creating user: {}", e.getMessage());
+            return false;
+        }
 
-        if (count == 0) {
+        if (count < 1) {
             logger.info("User not created");
             return false;
         }
@@ -113,10 +130,17 @@ public class UserDatabase implements Database {
     public static final class UserMapper implements RowMapper<User> {
         @Override
         public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new User(
-                rs.getString("username"),
-                rs.getString("password")
-            );
+            var user = new User(rs.getString("username"), rs.getString("password"), rs.getString("salt"));
+            user.setId(rs.getInt("id"));
+            user.setFirstName(rs.getString("first_name"));
+            user.setLastName(rs.getString("last_name"));
+            user.setTitle(rs.getString("title"));
+            user.setDepartment(rs.getInt("department"));
+            user.setEmail(rs.getString("email"));
+            user.setCountry(rs.getString("country"));
+            user.setCity(rs.getString("city"));
+            user.setLocation(rs.getInt("location"));
+            return user;
         }
     }
 }
