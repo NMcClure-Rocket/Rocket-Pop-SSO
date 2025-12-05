@@ -36,7 +36,7 @@ public class UserService {
         
         // Generate appropriate token based on role
         String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
-        String role = user.getRole() != null ? user.getRole() : "user";
+        String role = user.getTitle() != null ? user.getTitle() : "user";
         
         if ("admin".equalsIgnoreCase(role)) {
             return jwtUtil.generateAdminToken(user.getUsername(), email);
@@ -93,7 +93,7 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
-        user.setRole(role);
+        user.setTitle(role);
         
         boolean created = userDatabase.createUser(user);
         if (!created) {
@@ -118,7 +118,7 @@ public class UserService {
         }
         
         if (role != null && !role.isEmpty()) {
-            user.setRole(role);
+            user.setTitle(role);
         }
         
         if (location != null && !location.isEmpty()) {

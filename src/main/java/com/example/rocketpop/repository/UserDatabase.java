@@ -102,8 +102,8 @@ public class UserDatabase implements Database {
             user.getUsername(), 
             user.getPassword(), 
             user.getEmail() != null ? user.getEmail() : "",
-            user.getRole() != null ? user.getRole() : "user",
-            user.getLocation() != null ? user.getLocation() : "",
+            user.getTitle() != null ? user.getTitle() : "user",
+            user.getLocation(),
             id
         };
         int count = jdbcTemplate.update(updateUserQuery, args);

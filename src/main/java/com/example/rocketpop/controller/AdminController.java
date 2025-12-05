@@ -37,14 +37,14 @@ public class AdminController {
                 userRequest.getUsername(),
                 userRequest.getPassword(),
                 userRequest.getEmail(),
-                userRequest.getRole()
+                userRequest.getTitle()
             );
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User created successfully");
             response.put("username", newUser.getUsername());
             response.put("email", newUser.getEmail());
-            response.put("role", newUser.getRole());
+            response.put("title", newUser.getTitle());
             response.put("id", newUser.getId());
             response.put("location", newUser.getLocation());
             
@@ -85,7 +85,7 @@ public class AdminController {
             response.put("message", "Admin user created successfully");
             response.put("username", newAdmin.getUsername());
             response.put("email", newAdmin.getEmail());
-            response.put("role", newAdmin.getRole());
+            response.put("title", newAdmin.getTitle());
             response.put("id", newAdmin.getId());
             response.put("location", newAdmin.getLocation());
             
@@ -119,7 +119,7 @@ public class AdminController {
                 userRequest.getUsername(),
                 userRequest.getPassword(),
                 userRequest.getEmail(),
-                userRequest.getRole(),
+                userRequest.getTitle(),
                 userRequest.getLocation()
             );
             
@@ -127,7 +127,7 @@ public class AdminController {
             response.put("message", "User updated successfully");
             response.put("username", updatedUser.getUsername());
             response.put("email", updatedUser.getEmail());
-            response.put("role", updatedUser.getRole());
+            response.put("title", updatedUser.getTitle());
             response.put("id", updatedUser.getId());
             response.put("location", updatedUser.getLocation());
             
@@ -202,7 +202,7 @@ public class AdminController {
                 userMap.put("id", user.getId());
                 userMap.put("username", user.getUsername());
                 userMap.put("email", user.getEmail());
-                userMap.put("role", user.getRole());
+                userMap.put("title", user.getTitle());
                 userMap.put("location", user.getLocation());
                 return userMap;
             }).collect(Collectors.toList());
@@ -235,7 +235,7 @@ public class AdminController {
             response.put("id", user.getId());
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
-            response.put("role", user.getRole());
+            response.put("title", user.getTitle());
             response.put("location", user.getLocation());
             
             return ResponseEntity.ok(response);
@@ -256,7 +256,7 @@ public class AdminController {
         private String username;
         private String password;
         private String email;
-        private String role;
+        private String title;
         private String location;
         
         public String getUsername() {
@@ -283,12 +283,12 @@ public class AdminController {
             this.email = email;
         }
         
-        public String getRole() {
-            return role;
+        public String getTitle() {
+            return title;
         }
         
-        public void setRole(String role) {
-            this.role = role;
+        public void setTitle(String title) {
+            this.title = title;
         }
         
         public String getLocation() {
