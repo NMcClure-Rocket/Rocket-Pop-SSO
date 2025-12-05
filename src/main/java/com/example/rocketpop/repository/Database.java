@@ -1,5 +1,8 @@
 package com.example.rocketpop.repository;
 
+import com.example.rocketpop.model.User;
+import java.util.List;
+
 public interface Database {
 
     public User getUser(String username);
