@@ -64,10 +64,11 @@ export const useAuthStore = defineStore('auth', {
           return false
         }
         
-        const user = await authAPI.validate(this.token)
+        // Use getSelf to validate token and get user info
+        const user = await authAPI.getSelf()
         this.user = user
         this.isAuthenticated = true
-        this.isAdmin = user.role === 'admin' || user.isAdmin
+        this.isAdmin = user.role === 'admin'
         return true
       } catch (error) {
         this.logout()

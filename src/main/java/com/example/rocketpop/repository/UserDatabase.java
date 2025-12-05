@@ -24,11 +24,12 @@ public class UserDatabase implements Database {
 
     private static final String getUserQuery = "SELECT * FROM users WHERE username = ?";
     private static final String getAllUsersQuery = "SELECT * FROM users";
-    private static final String createUserQuery = "INSERT INTO users (username, password) VALUES (?, ?)";
+    private static final String searchUsersQuery = "SELECT * FROM users WHERE username LIKE ?";
+    private static final String createUserQuery = "INSERT INTO users (username, password, email, role, location) VALUES (?, ?, ?, ?, ?)";
     private static final String getUserIdByUsernameQuery = "SELECT id FROM users WHERE username = ?";
-    // TODO:
-    private static final String updateUserQuery = "UPDATE users SET username = ?, password = ? WHERE id = ?";
+    private static final String updateUserQuery = "UPDATE users SET username = ?, password = ?, email = ?, role = ?, location = ? WHERE id = ?";
     private static final String deleteUserQuery = "DELETE FROM users WHERE id = ?";
+    private static final String deleteUserByUsernameQuery = "DELETE FROM users WHERE username = ?";
     private static final String deleteAllUsersQuery = "DELETE FROM users";
 
     @Override
@@ -59,7 +60,13 @@ public class UserDatabase implements Database {
     @Override
     public boolean createUser(User user) {
         logger.info("createUser called with username: {}", user.getUsername());
-        Object[] args = {user.getUsername(), user.getPassword()};
+        Object[] args = {
+            user.getUsername(), 
+            user.getPassword(), 
+            user.getEmail() != null ? user.getEmail() : "",
+            user.getRole() != null ? user.getRole() : "user",
+            user.getLocation() != null ? user.getLocation() : ""
+        };
         int count = jdbcTemplate.update(createUserQuery, args);
 
         if (count == 0) {
@@ -74,12 +81,19 @@ public class UserDatabase implements Database {
     public boolean updateUser(User user) {
         logger.info("updateUser called with user: {}", user.getUsername());
         Object[] args = {user.getUsername()};
-        Integer id = jdbcTemplate.queryForObject(getUserIdByUsernameQuery, args, Integer.class);
+        Integer id = jdbcTemplate.queryForObject(getUserIdByUsernameQuery, Integer.class, args);
         if (id == null) {
             logger.info("User not found");
             return false;
         }
-        args = new Object[] {user.getUsername(), user.getPassword(), id};
+        args = new Object[] {
+            user.getUsername(), 
+            user.getPassword(), 
+            user.getEmail() != null ? user.getEmail() : "",
+            user.getRole() != null ? user.getRole() : "user",
+            user.getLocation() != null ? user.getLocation() : "",
+            id
+        };
         int count = jdbcTemplate.update(updateUserQuery, args);
 
         if (count == 0) {
@@ -110,12 +124,40 @@ public class UserDatabase implements Database {
         return count;
     }
 
+    public boolean deleteUserByUsername(String username) {
+        logger.info("deleteUserByUsername called with username: {}", username);
+        Object[] args = {username};
+        int count = jdbcTemplate.update(deleteUserByUsernameQuery, args);
+        
+        if (count == 0) {
+            logger.info("User not deleted");
+            return false;
+        }
+        logger.info("User deleted");
+        return true;
+    }
+
+    public List<User> searchUsers(String username) {
+        logger.info("searchUsers called with username: {}", username);
+        Object[] args = {"%" + username + "%"};
+        List<User> users = jdbcTemplate.query(searchUsersQuery, new UserMapper(), args);
+        if (users.size() == 0) {
+            logger.info("No users found");
+            return new ArrayList<User>();
+        }
+        return users;
+    }
+
     public static final class UserMapper implements RowMapper<User> {
         @Override
         public User mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new User(
+                rs.getInt("id"),
                 rs.getString("username"),
-                rs.getString("password")
+                rs.getString("password"),
+                rs.getString("email"),
+                rs.getString("role"),
+                rs.getString("location")
             );
         }
     }

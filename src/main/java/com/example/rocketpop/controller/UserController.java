@@ -1,6 +1,6 @@
 package com.example.rocketpop.controller;
 
-import com.example.rocketpop.entity.SSOUser;
+import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,13 +29,14 @@ public class UserController {
             }
             
             // Get user information from token
-            SSOUser user = userService.getUserFromToken(token.replace("Bearer ", ""));
+            User user = userService.getUserFromToken(token.replace("Bearer ", ""));
             
             Map<String, Object> response = new HashMap<>();
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
             response.put("role", user.getRole());
             response.put("id", user.getId());
+            response.put("location", user.getLocation());
             
             return ResponseEntity.ok(response);
             
@@ -59,7 +60,7 @@ public class UserController {
             }
             
             // Get user from token and update password
-            SSOUser user = userService.getUserFromToken(token.replace("Bearer ", ""));
+            User user = userService.getUserFromToken(token.replace("Bearer ", ""));
             userService.updatePassword(
                 user.getUsername(), 
                 passwordChangeRequest.getOldPassword(), 

@@ -1,20 +1,19 @@
 package com.example.rocketpop.service;
 
-import com.example.rocketpop.entity.SSOUser;
-import com.example.rocketpop.repository.SSOUserRepository;
+import com.example.rocketpop.model.User;
+import com.example.rocketpop.repository.UserDatabase;
 import com.example.rocketpop.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
     
     @Autowired
-    private SSOUserRepository userRepository;
+    private UserDatabase userDatabase;
     
     @Autowired
     private JWTUtil jwtUtil;
@@ -25,38 +24,42 @@ public class UserService {
      * Authenticate user and generate appropriate token
      */
     public String authenticateUser(String username, String password) {
-        Optional<SSOUser> userOpt = userRepository.findByUsername(username);
+        User user = userDatabase.getUser(username);
         
-        if (userOpt.isEmpty()) {
+        if (user == null) {
             throw new RuntimeException("Invalid username or password");
         }
-        
-        SSOUser user = userOpt.get();
         
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
         
         // Generate appropriate token based on role
-        if ("admin".equalsIgnoreCase(user.getRole())) {
-            return jwtUtil.generateAdminToken(user.getUsername(), user.getEmail());
+        String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
+        String role = user.getRole() != null ? user.getRole() : "user";
+        
+        if ("admin".equalsIgnoreCase(role)) {
+            return jwtUtil.generateAdminToken(user.getUsername(), email);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), user.getEmail(), user.getRole());
+            return jwtUtil.generateUserToken(user.getUsername(), email, role);
         }
     }
     
     /**
      * Get user by username
      */
-    public SSOUser getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public User getUserByUsername(String username) {
+        User user = userDatabase.getUser(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user;
     }
     
     /**
      * Get user info from token
      */
-    public SSOUser getUserFromToken(String token) {
+    public User getUserFromToken(String token) {
         boolean isAdmin = jwtUtil.isAdminToken(token);
         String username = jwtUtil.extractUsername(token, isAdmin);
         return getUserByUsername(username);
@@ -66,42 +69,45 @@ public class UserService {
      * Update user password
      */
     public void updatePassword(String username, String oldPassword, String newPassword) {
-        SSOUser user = getUserByUsername(username);
+        User user = getUserByUsername(username);
         
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
         }
         
         user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        userDatabase.updateUser(user);
     }
     
     /**
      * Create new user
      */
-    public SSOUser createUser(String username, String password, String email, String role) {
-        if (userRepository.existsByUsername(username)) {
+    public User createUser(String username, String password, String email, String role) {
+        // Check if user already exists
+        User existingUser = userDatabase.getUser(username);
+        if (existingUser != null) {
             throw new RuntimeException("Username already exists");
         }
         
-        if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
-        }
-        
-        SSOUser user = new SSOUser();
+        User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setRole(role);
         
-        return userRepository.save(user);
+        boolean created = userDatabase.createUser(user);
+        if (!created) {
+            throw new RuntimeException("Failed to create user");
+        }
+        
+        return userDatabase.getUser(username);
     }
     
     /**
      * Update existing user
      */
-    public SSOUser updateUser(String username, String password, String email, String role) {
-        SSOUser user = getUserByUsername(username);
+    public User updateUser(String username, String password, String email, String role, String location) {
+        User user = getUserByUsername(username);
         
         if (password != null && !password.isEmpty()) {
             user.setPassword(passwordEncoder.encode(password));
@@ -115,29 +121,41 @@ public class UserService {
             user.setRole(role);
         }
         
-        return userRepository.save(user);
+        if (location != null && !location.isEmpty()) {
+            user.setLocation(location);
+        }
+        
+        boolean updated = userDatabase.updateUser(user);
+        if (!updated) {
+            throw new RuntimeException("Failed to update user");
+        }
+        
+        return userDatabase.getUser(username);
     }
     
     /**
      * Delete user by username
      */
     public void deleteUser(String username) {
-        SSOUser user = getUserByUsername(username);
-        userRepository.delete(user);
+        User user = getUserByUsername(username);
+        userDatabase.deleteUser(user.getId());
     }
     
     /**
      * Get all users
      */
-    public List<SSOUser> getAllUsers() {
-        return userRepository.findAll();
+    public List<User> getAllUsers() {
+        return userDatabase.getAllUsers();
     }
     
     /**
      * Search users by username
      */
-    public List<SSOUser> searchUsers(String username) {
-        return userRepository.findByUsernameContainingIgnoreCase(username);
+    public List<User> searchUsers(String username) {
+        if (username == null || username.isEmpty()) {
+            return getAllUsers();
+        }
+        return userDatabase.searchUsers(username);
     }
     
     /**

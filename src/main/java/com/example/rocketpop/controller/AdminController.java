@@ -1,13 +1,12 @@
 package com.example.rocketpop.controller;
 
-import com.example.rocketpop.entity.SSOUser;
+import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class AdminController {
             }
             
             // Create new user with 'user' or 'manager' role
-            SSOUser newUser = userService.createUser(
+            User newUser = userService.createUser(
                 userRequest.getUsername(),
                 userRequest.getPassword(),
                 userRequest.getEmail(),
@@ -47,6 +46,7 @@ public class AdminController {
             response.put("email", newUser.getEmail());
             response.put("role", newUser.getRole());
             response.put("id", newUser.getId());
+            response.put("location", newUser.getLocation());
             
             return ResponseEntity.ok(response);
             
@@ -74,7 +74,7 @@ public class AdminController {
             }
             
             // Create new admin user (internal SSO use only)
-            SSOUser newAdmin = userService.createUser(
+            User newAdmin = userService.createUser(
                 userRequest.getUsername(),
                 userRequest.getPassword(),
                 userRequest.getEmail(),
@@ -87,6 +87,7 @@ public class AdminController {
             response.put("email", newAdmin.getEmail());
             response.put("role", newAdmin.getRole());
             response.put("id", newAdmin.getId());
+            response.put("location", newAdmin.getLocation());
             
             return ResponseEntity.ok(response);
             
@@ -114,11 +115,12 @@ public class AdminController {
             }
             
             // Update user
-            SSOUser updatedUser = userService.updateUser(
+            User updatedUser = userService.updateUser(
                 userRequest.getUsername(),
                 userRequest.getPassword(),
                 userRequest.getEmail(),
-                userRequest.getRole()
+                userRequest.getRole(),
+                userRequest.getLocation()
             );
             
             Map<String, Object> response = new HashMap<>();
@@ -127,6 +129,7 @@ public class AdminController {
             response.put("email", updatedUser.getEmail());
             response.put("role", updatedUser.getRole());
             response.put("id", updatedUser.getId());
+            response.put("location", updatedUser.getLocation());
             
             return ResponseEntity.ok(response);
             
@@ -186,7 +189,7 @@ public class AdminController {
             }
             
             // Get users (filtered by username if provided)
-            List<SSOUser> users;
+            List<User> users;
             if (username != null && !username.isEmpty()) {
                 users = userService.searchUsers(username);
             } else {
@@ -200,6 +203,7 @@ public class AdminController {
                 userMap.put("username", user.getUsername());
                 userMap.put("email", user.getEmail());
                 userMap.put("role", user.getRole());
+                userMap.put("location", user.getLocation());
                 return userMap;
             }).collect(Collectors.toList());
             
@@ -225,13 +229,14 @@ public class AdminController {
             }
             
             // Get specific user
-            SSOUser user = userService.getUserByUsername(username);
+            User user = userService.getUserByUsername(username);
             
             Map<String, Object> response = new HashMap<>();
             response.put("id", user.getId());
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
             response.put("role", user.getRole());
+            response.put("location", user.getLocation());
             
             return ResponseEntity.ok(response);
             
@@ -252,6 +257,7 @@ public class AdminController {
         private String password;
         private String email;
         private String role;
+        private String location;
         
         public String getUsername() {
             return username;
@@ -283,6 +289,14 @@ public class AdminController {
         
         public void setRole(String role) {
             this.role = role;
+        }
+        
+        public String getLocation() {
+            return location;
+        }
+        
+        public void setLocation(String location) {
+            this.location = location;
         }
     }
 }
