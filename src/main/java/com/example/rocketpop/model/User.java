@@ -1,4 +1,4 @@
-package com.example.rocketpop;
+package com.example.rocketpop.model;
 
 public class User {
     private final String userName;
