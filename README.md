@@ -63,6 +63,10 @@ This will start both the backend (port 42068) and frontend (port 42067) in separ
 .\mvnw.cmd spring-boot:run
 ```
 
+```bash
+mvn spring-boot:run
+```
+
 **Frontend:**
 ```powershell
 cd frontend
@@ -179,6 +183,21 @@ npm run preview
 # Run tests
 .\mvnw.cmd test
 ```
+```bash
+# Start database
+sudo docker-compose up -d
+
+# Run
+mvn spring-boot:run
+
+# Build
+mvn clean package
+
+# Run tests
+# Note: does not require the docker container to be running
+mvn test
+```
+
 
 ## Next Steps
 
