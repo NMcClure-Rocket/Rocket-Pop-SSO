@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -29,13 +31,16 @@ public class UserDatabaseTests {
 
     @BeforeEach
     public void setUp() {
-        database.deleteAllUsers();
-
         var user = new User("user1", "test", "salt");
         database.createUser(user);
 
         var user2 = new User("user2", "test", "salt");
         database.createUser(user2);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        database.deleteAllUsers();
     }
 
     @Test
