@@ -24,21 +24,21 @@ public class UserDatabase implements Database {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final String getUserQuery = "SELECT * FROM users WHERE username = ?";
-    private static final String getAllUsersQuery = "SELECT * FROM users";
-    private static final String searchUsersQuery = "SELECT * FROM users WHERE username LIKE ?";
-    private static final String createUserQuery = "INSERT INTO users (first_name, last_name, title, department, email, country, city, location, username, password, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String getUserIdByUsernameQuery = "SELECT id FROM users WHERE username = ?";
-    private static final String updateUserQuery = "UPDATE users SET username = ?, password = ?, salt = ?, first_name = ?, last_name = ?, title = ?, department = ?, email = ?, country = ?, city = ?, location = ? WHERE id = ?";
-    private static final String deleteUserQuery = "DELETE FROM users WHERE id = ?";
-    private static final String deleteUserByUsernameQuery = "DELETE FROM users WHERE username = ?";
-    private static final String deleteAllUsersQuery = "DELETE FROM users";
+    private static final String GETUSERQUERY = "SELECT * FROM users WHERE username = ?";
+    private static final String GETALLUSERQUERY = "SELECT * FROM users";
+    private static final String SEARCHUSERSQUERY = "SELECT * FROM users WHERE username LIKE ?";
+    private static final String CREATEUSERQUERY = "INSERT INTO users (first_name, last_name, title, department, email, country, city, location, username, password, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String GETUSERIDBYUSERNAMEQUERY = "SELECT id FROM users WHERE username = ?";
+    private static final String UPDATEUSERQUERY = "UPDATE users SET username = ?, password = ?, salt = ?, first_name = ?, last_name = ?, title = ?, department = ?, email = ?, country = ?, city = ?, location = ? WHERE id = ?";
+    private static final String DELETEUSERQUERY = "DELETE FROM users WHERE id = ?";
+    private static final String DELETEUSERBYUSERNAMEQUERY = "DELETE FROM users WHERE username = ?";
+    private static final String DELETEALLUSERSQUERY = "DELETE FROM users";
 
     @Override
     public User getUser(String username) {
         logger.info("getUser called with username: {}", username);
         Object[] args = {username};
-        List<User> users = jdbcTemplate.query(getUserQuery, args, new UserMapper());
+        List<User> users = jdbcTemplate.query(GETUSERQUERY, args, new UserMapper());
 
         if (users.size() == 0) {
             logger.info("No user found with username: {}", username);
@@ -54,7 +54,7 @@ public class UserDatabase implements Database {
     @Override
     public List<User> getAllUsers() {
         logger.info("getAllUsers called");
-        List<User> users = jdbcTemplate.query(getAllUsersQuery, new UserMapper());
+        List<User> users = jdbcTemplate.query(GETALLUSERQUERY, new UserMapper());
         if (users.size() == 0) {
             logger.info("No users found");
             return new ArrayList<User>();
@@ -84,7 +84,7 @@ public class UserDatabase implements Database {
         };
         int count = -1;
 
-            count = jdbcTemplate.update(createUserQuery, args);
+            count = jdbcTemplate.update(CREATEUSERQUERY, args);
 
         if (count < 1) {
             logger.info("User not created");
@@ -115,7 +115,7 @@ public class UserDatabase implements Database {
 
         int count = -1;
         try {
-            count = jdbcTemplate.update(updateUserQuery, args);
+            count = jdbcTemplate.update(UPDATEUSERQUERY, args);
         } catch (DataAccessException e) {
             logger.error("Error updating user: {}", e.getMessage());
             return false;
@@ -133,7 +133,7 @@ public class UserDatabase implements Database {
     public boolean deleteUser(int id) {
         logger.info("deleteUser called with id: {}", id);
         Object[] args = {id};
-        int count = jdbcTemplate.update(deleteUserQuery, args);
+        int count = jdbcTemplate.update(DELETEUSERQUERY, args);
 
         if (count == 0) {
             logger.info("User not deleted");
@@ -145,14 +145,14 @@ public class UserDatabase implements Database {
     
     public int deleteAllUsers() {
         logger.info("deleteAllUsers called");
-        int count = jdbcTemplate.update(deleteAllUsersQuery);
+        int count = jdbcTemplate.update(DELETEALLUSERSQUERY);
         return count;
     }
 
     public boolean deleteUserByUsername(String username) {
         logger.info("deleteUserByUsername called with username: {}", username);
         Object[] args = {username};
-        int count = jdbcTemplate.update(deleteUserByUsernameQuery, args);
+        int count = jdbcTemplate.update(DELETEUSERBYUSERNAMEQUERY, args);
         
         if (count == 0) {
             logger.info("User not deleted");
@@ -165,7 +165,7 @@ public class UserDatabase implements Database {
     public List<User> searchUsers(String username) {
         logger.info("searchUsers called with username: {}", username);
         Object[] args = {"%" + username + "%"};
-        List<User> users = jdbcTemplate.query(searchUsersQuery, new UserMapper(), args);
+        List<User> users = jdbcTemplate.query(SEARCHUSERSQUERY, new UserMapper(), args);
         if (users.size() == 0) {
             logger.info("No users found");
             return new ArrayList<User>();
@@ -193,7 +193,7 @@ public class UserDatabase implements Database {
     private boolean userExists(String username) {
         logger.info("userExists called with username: {}", username);
         Object[] args = {username};
-        List<User> count = jdbcTemplate.query(getUserQuery, args, new UserMapper());
+        List<User> count = jdbcTemplate.query(GETUSERQUERY, args, new UserMapper());
         return count.size() > 0;
     }
 }
