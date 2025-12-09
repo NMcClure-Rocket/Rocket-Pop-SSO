@@ -1,14 +1,21 @@
 package com.example.rocketpop.controller;
 
-import com.example.rocketpop.model.User;
-import com.example.rocketpop.service.UserService;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.example.rocketpop.model.User;
+import com.example.rocketpop.service.UserService;
 
 @RestController
 @RequestMapping("/user")
@@ -57,6 +64,14 @@ public class UserController {
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Invalid or expired token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+            
+            // Validate password fields are not empty
+            if (passwordChangeRequest.getOldPassword() == null || passwordChangeRequest.getOldPassword().trim().isEmpty() ||
+                passwordChangeRequest.getNewPassword() == null || passwordChangeRequest.getNewPassword().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Old password and new password are required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
             }
             
             // Get user from token and update password
