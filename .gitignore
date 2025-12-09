@@ -41,3 +41,4 @@ logs/
 AGENTS.md
 
 *.env
+debug.log
