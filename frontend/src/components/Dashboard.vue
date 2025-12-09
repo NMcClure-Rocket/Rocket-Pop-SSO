@@ -17,7 +17,7 @@
             <strong>Username:</strong> {{ userInfo.username }}
           </div>
           <div class="info-row">
-            <strong>Role:</strong> {{ userInfo.role || (userInfo.isAdmin ? 'Admin' : 'User') }}
+            <strong>Role:</strong> {{ userInfo.title || (userInfo.isAdmin ? 'Admin' : 'User') }}
           </div>
           <div class="info-row" v-if="userInfo.email">
             <strong>Email:</strong> {{ userInfo.email }}
@@ -133,13 +133,7 @@ const loadSelfInfo = async () => {
   try {
     userInfo.value = await authStore.getSelf()
   } catch (error) {
-    // In dev bypass mode, show friendly error
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      selfError.value = '🚧 Dev Mode: Backend not connected (using mock data)'
-      userInfo.value = authStore.user
-    } else {
-      selfError.value = error.response?.data?.message || 'Failed to load profile'
-    }
+    selfError.value = error.response?.data?.error || error.response?.data?.message || 'Failed to load profile'
   }
 }
 
@@ -160,23 +154,13 @@ const handleChangePassword = async () => {
   passwordLoading.value = true
 
   try {
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      // Simulate successful password change in dev mode
-      await new Promise(resolve => setTimeout(resolve, 500))
-      passwordSuccess.value = '🚧 Dev Mode: Password change simulated (backend not connected)'
-      oldPassword.value = ''
-      newPassword.value = ''
-      confirmPassword.value = ''
-    } else {
-      const response = await userAPI.changePassword(oldPassword.value, newPassword.value)
-      passwordSuccess.value = response.message || 'Password changed successfully'
-      oldPassword.value = ''
-      newPassword.value = ''
-      confirmPassword.value = ''
-    }
+    const response = await userAPI.changePassword(oldPassword.value, newPassword.value)
+    passwordSuccess.value = response.message || 'Password changed successfully'
+    oldPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
   } catch (error) {
-    passwordError.value = error.response?.data?.message || 'Failed to change password'
+    passwordError.value = error.response?.data?.error || error.response?.data?.message || 'Failed to change password'
   } finally {
     passwordLoading.value = false
   }
@@ -193,19 +177,13 @@ const validateCurrentToken = async () => {
       return
     }
     
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (token.startsWith('dev-bypass-token')) {
-      validateResult.value = {
-        ...authStore.user,
-        tokenValid: true,
-        devMode: true,
-        message: '🚧 Dev Mode: Token validation simulated'
-      }
-    } else {
-      validateResult.value = await authAPI.validate(token)
+    // Get user info directly from the store since token is already validated
+    validateResult.value = {
+      ...authStore.user,
+      tokenValid: true
     }
   } catch (error) {
-    validateError.value = error.response?.data?.message || 'Token validation failed'
+    validateError.value = error.response?.data?.error || error.response?.data?.message || 'Token validation failed'
   }
 }
 

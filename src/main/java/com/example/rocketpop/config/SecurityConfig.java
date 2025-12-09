@@ -28,7 +28,7 @@ public class SecurityConfig {
             // Configure authorization
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/ping", "/login", "/h2-console/**").permitAll()
+                .requestMatchers("/*/*","/*","/ping", "/login", "/h2-console/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

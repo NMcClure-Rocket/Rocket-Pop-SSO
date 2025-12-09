@@ -1,21 +1,35 @@
 package com.example.rocketpop.controller;
 
-import com.example.rocketpop.model.User;
-import com.example.rocketpop.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.rocketpop.model.User;
+import com.example.rocketpop.service.UserService;
+
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin(origins = "http://localhost:42067")
 public class AdminController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
     @Autowired
     private UserService userService;
@@ -32,7 +46,7 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
-            // Create new user with 'user' or 'manager' role
+            // Create new user with 'user' or 'manager' title
             User newUser = userService.createUser(
                 userRequest.getUsername(),
                 userRequest.getPassword(),
@@ -178,23 +192,39 @@ public class AdminController {
     
     @GetMapping("/user/getall")
     public ResponseEntity<?> getAllUsers(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestParam(required = false) String username) {
         try {
+            LOGGER.info("getAllUsers called with username filter: {}", username);
+            
+            if (token == null || token.isEmpty()) {
+                LOGGER.error("No authorization token provided");
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "No authorization token provided");
+                error.put("message", "Authorization header is missing");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+            
             // Validate admin token
             if (!userService.validateAdminToken(token)) {
+                LOGGER.error("Unauthorized access attempt to getAllUsers - invalid token");
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Unauthorized - Admin access required");
+                error.put("message", "Invalid or non-admin token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
             // Get users (filtered by username if provided)
             List<User> users;
             if (username != null && !username.isEmpty()) {
+                LOGGER.info("Searching users with username: {}", username);
                 users = userService.searchUsers(username);
             } else {
+                LOGGER.info("Getting all users");
                 users = userService.getAllUsers();
             }
+            
+            LOGGER.info("Found {} users", users.size());
             
             // Convert to response format
             List<Map<String, Object>> response = users.stream().map(user -> {
@@ -210,26 +240,48 @@ public class AdminController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
+            LOGGER.error("Error getting all users", e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Internal server error");
+            error.put("error", "Internal server error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
     
     @GetMapping("/user/get/{username}")
     public ResponseEntity<?> getUser(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable String username) {
         try {
+            LOGGER.info("getUser called for username: {}", username);
+            
+            if (token == null || token.isEmpty()) {
+                LOGGER.error("No authorization token provided");
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "No authorization token provided");
+                error.put("message", "Authorization header is missing");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+            
             // Validate admin token
             if (!userService.validateAdminToken(token)) {
+                LOGGER.error("Unauthorized access attempt to getUser - invalid token");
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Unauthorized - Admin access required");
+                error.put("message", "Invalid or non-admin token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
             // Get specific user
             User user = userService.getUserByUsername(username);
+            
+            if (user == null) {
+                LOGGER.warn("User not found: {}", username);
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+            
+            LOGGER.info("User found: {}", username);
             
             Map<String, Object> response = new HashMap<>();
             response.put("id", user.getId());
@@ -241,12 +293,14 @@ public class AdminController {
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
+            LOGGER.error("Error getting user: {}", username, e);
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         } catch (Exception e) {
+            LOGGER.error("Internal error getting user: {}", username, e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Internal server error");
+            error.put("error", "Internal server error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

@@ -33,7 +33,7 @@
             <tbody>
               <tr v-for="user in users" :key="user.username || user.id">
                 <td>{{ user.username }}</td>
-                <td>{{ user.role || (user.isAdmin ? 'Admin' : 'User') }}</td>
+                <td>{{ user.title || 'User' }}</td>
                 <td>{{ user.email || 'N/A' }}</td>
                 <td>
                   <button @click="selectUserForEdit(user)" class="secondary small">Edit</button>
@@ -235,14 +235,6 @@ import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
 
-// TODO: REMOVE IN PRODUCTION - Mock data for dev mode
-const mockUsers = [
-  { username: 'admin', email: 'admin@example.com', role: 'admin', isAdmin: true },
-  { username: 'testuser', email: 'testuser@example.com', role: 'user', isAdmin: false },
-  { username: 'john.doe', email: 'john@example.com', role: 'user', isAdmin: false },
-  { username: 'jane.smith', email: 'jane@example.com', role: 'user', isAdmin: false }
-]
-
 // Expandable sections state
 const expandedSections = ref({
   viewUsers: false,
@@ -289,7 +281,7 @@ const editForm = ref({
   username: '',
   password: '',
   email: '',
-  role: 'user'
+  title: 'user'
 })
 const editError = ref('')
 const editSuccess = ref('')
@@ -301,23 +293,12 @@ const deleteError = ref('')
 const loadUsers = async () => {
   viewError.value = ''
   try {
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      // Filter mock users by search term
-      let filteredUsers = [...mockUsers]
-      if (searchUsername.value) {
-        filteredUsers = filteredUsers.filter(u => 
-          u.username.toLowerCase().includes(searchUsername.value.toLowerCase())
-        )
-      }
-      users.value = filteredUsers
-      console.warn('🚧 Dev Mode: Using mock user data')
-    } else {
-      const response = await adminAPI.viewUsers(searchUsername.value)
-      users.value = Array.isArray(response) ? response : response.users || []
-    }
+    const response = await adminAPI.viewUsers(searchUsername.value)
+    users.value = Array.isArray(response) ? response : response.users || []
   } catch (error) {
-    viewError.value = error.response?.data?.message || 'Failed to load users'
+    console.error('Error loading users:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load users'
+    viewError.value = errorMsg
   }
 }
 
@@ -331,20 +312,11 @@ const getSpecificUser = async () => {
   }
 
   try {
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      const found = mockUsers.find(u => u.username === getUserUsername.value)
-      if (found) {
-        specificUser.value = { ...found, devMode: true }
-        console.warn('🚧 Dev Mode: Using mock user data')
-      } else {
-        getUserError.value = 'User not found in mock data'
-      }
-    } else {
-      specificUser.value = await adminAPI.getUser(getUserUsername.value)
-    }
+    specificUser.value = await adminAPI.getUser(getUserUsername.value)
   } catch (error) {
-    getUserError.value = error.response?.data?.message || 'Failed to get user'
+    console.error('Error getting user:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to get user'
+    getUserError.value = errorMsg
   }
 }
 
@@ -353,23 +325,10 @@ const handleCreateUser = async () => {
   createSuccess.value = ''
 
   try {
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      mockUsers.push({ 
-        ...createForm.value, 
-        role: 'user', 
-        isAdmin: false 
-      })
-      createSuccess.value = '🚧 Dev Mode: User created in mock data (backend not connected)'
-      createForm.value = { username: '', password: '', email: '' }
-      loadUsers()
-    } else {
-      const response = await adminAPI.createUser(createForm.value)
-      createSuccess.value = response.message || 'User created successfully'
-      createForm.value = { username: '', password: '', email: '' }
-      loadUsers()
-    }
+    const response = await adminAPI.createUser(createForm.value)
+    createSuccess.value = response.message || 'User created successfully'
+    createForm.value = { username: '', password: '', email: '' }
+    loadUsers()
   } catch (error) {
     createError.value = error.response?.data?.message || 'Failed to create user'
   }
@@ -380,23 +339,10 @@ const handleCreateAdmin = async () => {
   createAdminSuccess.value = ''
 
   try {
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      mockUsers.push({ 
-        ...createAdminForm.value, 
-        role: 'admin', 
-        isAdmin: true 
-      })
-      createAdminSuccess.value = '🚧 Dev Mode: Admin created in mock data (backend not connected)'
-      createAdminForm.value = { username: '', password: '', email: '' }
-      loadUsers()
-    } else {
-      const response = await adminAPI.createAdmin(createAdminForm.value)
-      createAdminSuccess.value = response.message || 'Admin user created successfully'
-      createAdminForm.value = { username: '', password: '', email: '' }
-      loadUsers()
-    }
+    const response = await adminAPI.createAdmin(createAdminForm.value)
+    createAdminSuccess.value = response.message || 'Admin user created successfully'
+    createAdminForm.value = { username: '', password: '', email: '' }
+    loadUsers()
   } catch (error) {
     createAdminError.value = error.response?.data?.message || 'Failed to create admin'
   }
@@ -407,7 +353,7 @@ const selectUserForEdit = (user) => {
     username: user.username,
     password: '',
     email: user.email || '',
-    role: user.role || (user.isAdmin ? 'admin' : 'user')
+    title: user.title || 'user'
   }
   editError.value = ''
   editSuccess.value = ''
@@ -429,31 +375,18 @@ const handleEditUser = async () => {
   editSuccess.value = ''
 
   try {
-    const userData = { ...editForm.value }
-    if (!userData.password) {
-      delete userData.password
+    const userData = { 
+      username: editForm.value.username,
+      email: editForm.value.email,
+      title: editForm.value.role  // Map 'role' to 'title' for backend
+    }
+    if (editForm.value.password) {
+      userData.password = editForm.value.password
     }
     
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      const userIndex = mockUsers.findIndex(u => u.username === userData.username)
-      if (userIndex >= 0) {
-        mockUsers[userIndex] = {
-          ...mockUsers[userIndex],
-          ...userData,
-          isAdmin: userData.role === 'admin'
-        }
-        editSuccess.value = '🚧 Dev Mode: User updated in mock data (backend not connected)'
-        loadUsers()
-      } else {
-        editError.value = 'User not found in mock data'
-      }
-    } else {
-      const response = await adminAPI.editUser(userData)
-      editSuccess.value = response.message || 'User updated successfully'
-      loadUsers()
-    }
+    const response = await adminAPI.editUser(userData)
+    editSuccess.value = response.message || 'User updated successfully'
+    loadUsers()
   } catch (error) {
     editError.value = error.response?.data?.message || 'Failed to update user'
   }
@@ -480,24 +413,9 @@ const handleDeleteUser = async () => {
 
   try {
     const userId = deleteConfirmation.value.id || deleteConfirmation.value.username
-    
-    // TODO: REMOVE IN PRODUCTION - Dev bypass
-    if (authStore.token && authStore.token.startsWith('dev-bypass-token')) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      const userIndex = mockUsers.findIndex(u => u.username === userId || u.id === userId)
-      if (userIndex >= 0) {
-        mockUsers.splice(userIndex, 1)
-        console.warn('🚧 Dev Mode: User deleted from mock data')
-        cancelDelete()
-        loadUsers()
-      } else {
-        deleteError.value = 'User not found in mock data'
-      }
-    } else {
-      await adminAPI.deleteUser(userId)
-      cancelDelete()
-      loadUsers()
-    }
+    await adminAPI.deleteUser(userId)
+    cancelDelete()
+    loadUsers()
   } catch (error) {
     deleteError.value = error.response?.data?.message || 'Failed to delete user'
   }

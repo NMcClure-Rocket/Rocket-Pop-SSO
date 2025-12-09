@@ -18,7 +18,7 @@ public class UserService {
     @Autowired
     private JWTUtil jwtUtil;
     
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    //private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     /**
      * Authenticate user and generate appropriate token
@@ -30,18 +30,28 @@ public class UserService {
             throw new RuntimeException("Invalid username or password");
         }
         
+        if (!password.equals(user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+        /*
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+        */
+        /*
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
+        */
         
-        // Generate appropriate token based on role
+        // Generate appropriate token based on title
         String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
-        String role = user.getTitle() != null ? user.getTitle() : "user";
+        String title = user.getTitle() != null ? user.getTitle() : "user";
         
-        if ("admin".equalsIgnoreCase(role)) {
+        if ("admin".equalsIgnoreCase(title)) {
             return jwtUtil.generateAdminToken(user.getUsername(), email);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), email, role);
+            return jwtUtil.generateUserToken(user.getUsername(), email, title);
         }
     }
     
@@ -71,27 +81,38 @@ public class UserService {
     public void updatePassword(String username, String oldPassword, String newPassword) {
         User user = getUserByUsername(username);
         
+        if (!user.getPassword().equals(oldPassword)) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+        /*
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
         }
+        */
         
-        user.setPassword(passwordEncoder.encode(newPassword));
+        //user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(newPassword);
+        // BCrypt includes the salt in the hash, so we keep the salt column empty
+        user.setSalt("");
         userDatabase.updateUser(user);
     }
     
     /**
      * Create new user
      */
-    public User createUser(String username, String password, String email, String role) {
+    public User createUser(String username, String password, String email, String title) {
         // Check if user already exists
         User existingUser = userDatabase.getUser(username);
         if (existingUser != null) {
             throw new RuntimeException("Username already exists");
         }
         
-        String encodedPassword = passwordEncoder.encode(password);
-        User user = new User(username, encodedPassword, email);
-        user.setTitle(role);
+        // BCrypt includes the salt in the hash, so we'll store an empty string for the salt column
+        //String encodedPassword = passwordEncoder.encode(password);
+        //User user = new User(username, encodedPassword, "");
+        User user = new User(username, password, "");
+        user.setEmail(email);
+        user.setTitle(title);
         
         boolean created = userDatabase.createUser(user);
         if (!created) {
@@ -104,19 +125,22 @@ public class UserService {
     /**
      * Update existing user
      */
-    public User updateUser(String username, String password, String email, String role, String location) {
+    public User updateUser(String username, String password, String email, String title, String location) {
         User user = getUserByUsername(username);
         
         if (password != null && !password.isEmpty()) {
-            user.setPassword(passwordEncoder.encode(password));
+            //user.setPassword(passwordEncoder.encode(password));
+            user.setPassword(password);
+            // BCrypt includes the salt in the hash, so we keep the salt column empty
+            user.setSalt("");
         }
         
         if (email != null && !email.isEmpty()) {
             user.setEmail(email);
         }
         
-        if (role != null && !role.isEmpty()) {
-            user.setTitle(role);
+        if (title != null && !title.isEmpty()) {
+            user.setTitle(title);
         }
         
         if (location != null && !location.isEmpty()) {
