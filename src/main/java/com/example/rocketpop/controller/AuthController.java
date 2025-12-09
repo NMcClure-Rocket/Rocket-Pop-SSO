@@ -3,6 +3,8 @@ package com.example.rocketpop.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.rocketpop.util.PasswordHasher;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    private final PasswordHasher passwordHasher = new PasswordHasher();
+
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {
         Map<String, Object> response = new HashMap<>();
@@ -40,10 +44,14 @@ public class AuthController {
         LOGGER.info("login called with username: {}, password: {}"
                 , loginRequest.getUsername(), loginRequest.getPassword());
         try {
+            String passwordHash = passwordHasher.hashPassword(
+                    passwordHasher.rsaDecrypt(loginRequest.getPassword()),
+                    userService.getUserSalt(loginRequest.getUsername())
+                    );
             // Authenticate user and generate JWT token
             String token = userService.authenticateUser(
-                loginRequest.getUsername(), 
-                loginRequest.getPassword()
+                    loginRequest.getUsername(),
+                    passwordHash
             );
 
             LOGGER.info("login successful");

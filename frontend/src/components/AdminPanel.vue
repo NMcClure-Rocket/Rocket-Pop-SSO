@@ -80,6 +80,26 @@
       </div>
       <div v-show="expandedSections.createUser" class="card-content">
         <form @submit.prevent="handleCreateUser">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createFirstName">First Name</label>
+              <input
+                id="createFirstName"
+                v-model="createForm.firstName"
+                type="text"
+                placeholder="Enter first name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="createLastName">Last Name</label>
+              <input
+                id="createLastName"
+                v-model="createForm.lastName"
+                type="text"
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
           <div class="form-group">
             <label for="createUsername">Username</label>
             <input
@@ -109,6 +129,54 @@
               placeholder="Enter email"
             />
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createTitle">Title/Role</label>
+              <select id="createTitle" v-model="createForm.title">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="createDepartment">Department</label>
+              <input
+                id="createDepartment"
+                v-model.number="createForm.department"
+                type="number"
+                placeholder="Enter department ID"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createCountry">Country</label>
+              <input
+                id="createCountry"
+                v-model="createForm.country"
+                type="text"
+                placeholder="Enter country"
+              />
+            </div>
+            <div class="form-group">
+              <label for="createCity">City</label>
+              <input
+                id="createCity"
+                v-model="createForm.city"
+                type="text"
+                placeholder="Enter city"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="createLocation">Location ID</label>
+            <input
+              id="createLocation"
+              v-model.number="createForm.location"
+              type="number"
+              placeholder="Enter location ID"
+            />
+          </div>
           <div v-if="createError" class="error-message">{{ createError }}</div>
           <div v-if="createSuccess" class="success-message">{{ createSuccess }}</div>
           <button type="submit" class="primary">Create User</button>
@@ -124,6 +192,26 @@
       </div>
       <div v-show="expandedSections.createAdmin" class="card-content">
         <form @submit.prevent="handleCreateAdmin">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createAdminFirstName">First Name</label>
+              <input
+                id="createAdminFirstName"
+                v-model="createAdminForm.firstName"
+                type="text"
+                placeholder="Enter first name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="createAdminLastName">Last Name</label>
+              <input
+                id="createAdminLastName"
+                v-model="createAdminForm.lastName"
+                type="text"
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
           <div class="form-group">
             <label for="createAdminUsername">Username</label>
             <input
@@ -153,6 +241,46 @@
               placeholder="Enter email"
             />
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createAdminDepartment">Department ID</label>
+              <input
+                id="createAdminDepartment"
+                v-model.number="createAdminForm.department"
+                type="number"
+                placeholder="Enter department ID"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createAdminCountry">Country</label>
+              <input
+                id="createAdminCountry"
+                v-model="createAdminForm.country"
+                type="text"
+                placeholder="Enter country"
+              />
+            </div>
+            <div class="form-group">
+              <label for="createAdminCity">City</label>
+              <input
+                id="createAdminCity"
+                v-model="createAdminForm.city"
+                type="text"
+                placeholder="Enter city"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="createAdminLocation">Location ID</label>
+            <input
+              id="createAdminLocation"
+              v-model.number="createAdminForm.location"
+              type="number"
+              placeholder="Enter location ID"
+            />
+          </div>
           <div v-if="createAdminError" class="error-message">{{ createAdminError }}</div>
           <div v-if="createAdminSuccess" class="success-message">{{ createAdminSuccess }}</div>
           <button type="submit" class="success">Create Admin</button>
@@ -168,6 +296,26 @@
       </div>
       <div v-show="expandedSections.editUser" class="card-content">
         <form @submit.prevent="handleEditUser">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editFirstName">First Name</label>
+              <input
+                id="editFirstName"
+                v-model="editForm.firstName"
+                type="text"
+                placeholder="Enter first name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="editLastName">Last Name</label>
+              <input
+                id="editLastName"
+                v-model="editForm.lastName"
+                type="text"
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
           <div class="form-group">
             <label for="editUsername">Username</label>
             <input
@@ -196,12 +344,53 @@
               placeholder="Enter email"
             />
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editRole">Role</label>
+              <select id="editRole" v-model="editForm.role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editDepartment">Department ID</label>
+              <input
+                id="editDepartment"
+                v-model.number="editForm.department"
+                type="number"
+                placeholder="Enter department ID"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editCountry">Country</label>
+              <input
+                id="editCountry"
+                v-model="editForm.country"
+                type="text"
+                placeholder="Enter country"
+              />
+            </div>
+            <div class="form-group">
+              <label for="editCity">City</label>
+              <input
+                id="editCity"
+                v-model="editForm.city"
+                type="text"
+                placeholder="Enter city"
+              />
+            </div>
+          </div>
           <div class="form-group">
-            <label for="editRole">Role</label>
-            <select id="editRole" v-model="editForm.role">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
+            <label for="editLocation">Location ID</label>
+            <input
+              id="editLocation"
+              v-model.number="editForm.location"
+              type="number"
+              placeholder="Enter location ID"
+            />
           </div>
           <div v-if="editError" class="error-message">{{ editError }}</div>
           <div v-if="editSuccess" class="success-message">{{ editSuccess }}</div>
@@ -232,6 +421,7 @@
 import { ref, onMounted } from 'vue'
 import { adminAPI } from '../services/api'
 import { useAuthStore } from '../stores/auth'
+import { encryptPassword } from '../utils/encryption'
 
 const authStore = useAuthStore()
 
@@ -260,28 +450,48 @@ const getUserError = ref('')
 
 // Create User
 const createForm = ref({
+  firstName: '',
+  lastName: '',
   username: '',
   password: '',
-  email: ''
+  email: '',
+  title: 'user',
+  department: null,
+  country: '',
+  city: '',
+  location: null
 })
 const createError = ref('')
 const createSuccess = ref('')
 
 // Create Admin
 const createAdminForm = ref({
+  firstName: '',
+  lastName: '',
   username: '',
   password: '',
-  email: ''
+  email: '',
+  title: 'admin',
+  department: null,
+  country: '',
+  city: '',
+  location: null
 })
 const createAdminError = ref('')
 const createAdminSuccess = ref('')
 
 // Edit User
 const editForm = ref({
+  firstName: '',
+  lastName: '',
   username: '',
   password: '',
   email: '',
-  title: 'user'
+  role: 'user',
+  department: null,
+  country: '',
+  city: '',
+  location: null
 })
 const editError = ref('')
 const editSuccess = ref('')
@@ -325,12 +535,40 @@ const handleCreateUser = async () => {
   createSuccess.value = ''
 
   try {
-    const response = await adminAPI.createUser(createForm.value)
+    // Encrypt password before sending
+    const encryptedData = encryptPassword(createForm.value.username, createForm.value.password)
+    
+    const userData = {
+      firstName: createForm.value.firstName,
+      lastName: createForm.value.lastName,
+      username: encryptedData.username,
+      password: encryptedData.password,
+      email: createForm.value.email,
+      title: createForm.value.title,
+      department: createForm.value.department,
+      country: createForm.value.country,
+      city: createForm.value.city,
+      location: createForm.value.location
+    }
+    
+    const response = await adminAPI.createUser(userData)
     createSuccess.value = response.message || 'User created successfully'
-    createForm.value = { username: '', password: '', email: '' }
+    createForm.value = {
+      firstName: '',
+      lastName: '',
+      username: '',
+      password: '',
+      email: '',
+      title: 'user',
+      department: null,
+      country: '',
+      city: '',
+      location: null
+    }
     loadUsers()
   } catch (error) {
-    createError.value = error.response?.data?.message || 'Failed to create user'
+    console.error('Error creating user:', error)
+    createError.value = error.response?.data?.message || error.message || 'Failed to create user'
   }
 }
 
@@ -339,21 +577,55 @@ const handleCreateAdmin = async () => {
   createAdminSuccess.value = ''
 
   try {
-    const response = await adminAPI.createAdmin(createAdminForm.value)
+    // Encrypt password before sending
+    const encryptedData = encryptPassword(createAdminForm.value.username, createAdminForm.value.password)
+    
+    const userData = {
+      firstName: createAdminForm.value.firstName,
+      lastName: createAdminForm.value.lastName,
+      username: encryptedData.username,
+      password: encryptedData.password,
+      email: createAdminForm.value.email,
+      title: 'admin',
+      department: createAdminForm.value.department,
+      country: createAdminForm.value.country,
+      city: createAdminForm.value.city,
+      location: createAdminForm.value.location
+    }
+    
+    const response = await adminAPI.createAdmin(userData)
     createAdminSuccess.value = response.message || 'Admin user created successfully'
-    createAdminForm.value = { username: '', password: '', email: '' }
+    createAdminForm.value = {
+      firstName: '',
+      lastName: '',
+      username: '',
+      password: '',
+      email: '',
+      title: 'admin',
+      department: null,
+      country: '',
+      city: '',
+      location: null
+    }
     loadUsers()
   } catch (error) {
-    createAdminError.value = error.response?.data?.message || 'Failed to create admin'
+    console.error('Error creating admin:', error)
+    createAdminError.value = error.response?.data?.message || error.message || 'Failed to create admin'
   }
 }
 
 const selectUserForEdit = (user) => {
   editForm.value = {
+    firstName: user.firstName || user.first_name || '',
+    lastName: user.lastName || user.last_name || '',
     username: user.username,
     password: '',
     email: user.email || '',
-    title: user.title || 'user'
+    role: user.title || 'user',
+    department: user.department || null,
+    country: user.country || '',
+    city: user.city || '',
+    location: user.location || null
   }
   editError.value = ''
   editSuccess.value = ''
@@ -375,25 +647,46 @@ const handleEditUser = async () => {
   editSuccess.value = ''
 
   try {
-    const userData = { 
+    const userData = {
+      firstName: editForm.value.firstName,
+      lastName: editForm.value.lastName,
       username: editForm.value.username,
       email: editForm.value.email,
-      title: editForm.value.role  // Map 'role' to 'title' for backend
+      title: editForm.value.role,
+      department: editForm.value.department,
+      country: editForm.value.country,
+      city: editForm.value.city,
+      location: editForm.value.location
     }
+    
+    // Only encrypt password if provided
     if (editForm.value.password) {
-      userData.password = editForm.value.password
+      const encryptedData = encryptPassword(editForm.value.username, editForm.value.password)
+      userData.password = encryptedData.password
     }
     
     const response = await adminAPI.editUser(userData)
     editSuccess.value = response.message || 'User updated successfully'
     loadUsers()
   } catch (error) {
-    editError.value = error.response?.data?.message || 'Failed to update user'
+    console.error('Error editing user:', error)
+    editError.value = error.response?.data?.message || error.message || 'Failed to update user'
   }
 }
 
 const clearEditForm = () => {
-  editForm.value = { username: '', password: '', email: '', role: 'user' }
+  editForm.value = {
+    firstName: '',
+    lastName: '',
+    username: '',
+    password: '',
+    email: '',
+    role: 'user',
+    department: null,
+    country: '',
+    city: '',
+    location: null
+  }
   editError.value = ''
   editSuccess.value = ''
 }

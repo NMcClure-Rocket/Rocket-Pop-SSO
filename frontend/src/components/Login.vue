@@ -39,6 +39,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { encryptPassword } from '../utils/encryption'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -52,14 +53,22 @@ const handleLogin = async () => {
   errorMessage.value = ''
   loading.value = true
 
-  const result = await authStore.login(username.value, password.value)
-  
-  loading.value = false
+  try {
+    // Encrypt the password before sending
+    const encryptedCredentials = encryptPassword(username.value, password.value)
+    const result = await authStore.login(encryptedCredentials.username, encryptedCredentials.password)
+    
+    loading.value = false
 
-  if (result.success) {
-    router.push('/dashboard')
-  } else {
-    errorMessage.value = result.error
+    if (result.success) {
+      router.push('/dashboard')
+    } else {
+      errorMessage.value = result.error
+    }
+  } catch (error) {
+    loading.value = false
+    errorMessage.value = 'Failed to encrypt password. Please try again.'
+    console.error('Login error:', error)
   }
 }
 </script>
