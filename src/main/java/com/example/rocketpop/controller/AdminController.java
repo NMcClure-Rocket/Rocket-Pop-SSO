@@ -42,7 +42,7 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
-            // Create new user with 'user' or 'manager' role
+            // Create new user with 'user' or 'manager' title
             User newUser = userService.createUser(
                 userRequest.getUsername(),
                 userRequest.getPassword(),

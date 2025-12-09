@@ -44,14 +44,14 @@ public class UserService {
         }
         */
         
-        // Generate appropriate token based on role
+        // Generate appropriate token based on title
         String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
-        String role = user.getTitle() != null ? user.getTitle() : "user";
+        String title = user.getTitle() != null ? user.getTitle() : "user";
         
-        if ("admin".equalsIgnoreCase(role)) {
+        if ("admin".equalsIgnoreCase(title)) {
             return jwtUtil.generateAdminToken(user.getUsername(), email);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), email, role);
+            return jwtUtil.generateUserToken(user.getUsername(), email, title);
         }
     }
     
@@ -100,7 +100,7 @@ public class UserService {
     /**
      * Create new user
      */
-    public User createUser(String username, String password, String email, String role) {
+    public User createUser(String username, String password, String email, String title) {
         // Check if user already exists
         User existingUser = userDatabase.getUser(username);
         if (existingUser != null) {
@@ -112,7 +112,7 @@ public class UserService {
         //User user = new User(username, encodedPassword, "");
         User user = new User(username, password, "");
         user.setEmail(email);
-        user.setTitle(role);
+        user.setTitle(title);
         
         boolean created = userDatabase.createUser(user);
         if (!created) {
@@ -125,7 +125,7 @@ public class UserService {
     /**
      * Update existing user
      */
-    public User updateUser(String username, String password, String email, String role, String location) {
+    public User updateUser(String username, String password, String email, String title, String location) {
         User user = getUserByUsername(username);
         
         if (password != null && !password.isEmpty()) {
@@ -139,8 +139,8 @@ public class UserService {
             user.setEmail(email);
         }
         
-        if (role != null && !role.isEmpty()) {
-            user.setTitle(role);
+        if (title != null && !title.isEmpty()) {
+            user.setTitle(title);
         }
         
         if (location != null && !location.isEmpty()) {

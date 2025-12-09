@@ -91,8 +91,8 @@ Once both servers are running, open your browser to:
 - ✅ **View Users** - List all users with optional search
 - ✅ **Get User** - Retrieve specific user details
 - ✅ **Create User** - Add new regular users
-- ✅ **Create Admin** - Promote users to admin role
-- ✅ **Edit User** - Update user information and roles
+- ✅ **Create Admin** - Promote users to admin title
+- ✅ **Edit User** - Update user information and titles
 - ✅ **Delete User** - Remove users from the system
 
 ## API Endpoints

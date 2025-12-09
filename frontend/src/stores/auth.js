@@ -35,7 +35,8 @@ export const useAuthStore = defineStore('auth', {
         const user = await authAPI.getSelf()
         this.user = user
         this.isAuthenticated = true
-        this.isAdmin = user.role === 'admin'
+        // Check if title is 'admin' (case-insensitive)
+        this.isAdmin = user.title && user.title.toLowerCase() === 'admin'
         return true
       } catch (error) {
         this.logout()
