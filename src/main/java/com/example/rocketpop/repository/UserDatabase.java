@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDatabase implements Database {
-    public static final Logger logger = LoggerFactory.getLogger(UserDatabase.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDatabase.class);
 
     @Value("${private.key}")
     private String privateKeyString;
@@ -49,27 +48,27 @@ public class UserDatabase implements Database {
 
     @Override
     public User getUser(String username) {
-        logger.info("getUser called with username: {}", username);
+        LOGGER.info("getUser called with username: {}", username);
         Object[] args = {username};
         List<User> users = jdbcTemplate.query(GETUSERQUERY, args, new UserMapper());
 
         if (users.size() == 0) {
-            logger.info("No user found with username: {}", username);
+            LOGGER.info("No user found with username: {}", username);
             for (User user : getAllUsers()) {
-                logger.info("User: {}", user.getUsername());
+                LOGGER.info("User: {}", user.getUsername());
             }
             return null;
         }
-        logger.info("Found user: {}", users.get(0));
+        LOGGER.info("Found user: {}", users.get(0));
         return users.get(0);
     }
 
     @Override
     public List<User> getAllUsers() {
-        logger.info("getAllUsers called");
+        LOGGER.info("getAllUsers called");
         List<User> users = jdbcTemplate.query(GETALLUSERQUERY, new UserMapper());
         if (users.size() == 0) {
-            logger.info("No users found");
+            LOGGER.info("No users found");
             return new ArrayList<User>();
         }
         return users;
@@ -77,9 +76,9 @@ public class UserDatabase implements Database {
 
     @Override
     public boolean createUser(User user) {
-        logger.info("createUser called with username: {}", user.getUsername());
+        LOGGER.info("createUser called with username: {}", user.getUsername());
         if (userExists(user.getUsername())) {
-            logger.info("User already exists");
+            LOGGER.info("User already exists");
             return false;
         }
         Object[] args = {
@@ -100,16 +99,16 @@ public class UserDatabase implements Database {
             count = jdbcTemplate.update(CREATEUSERQUERY, args);
 
         if (count < 1) {
-            logger.info("User not created");
+            LOGGER.info("User not created");
             return false;
         }
-        logger.info("User created");
+        LOGGER.info("User created");
         return true;
     }
 
     @Override
     public boolean updateUser(User user) {
-        logger.info("updateUser called with user: {}", user.getUsername());
+        LOGGER.info("updateUser called with user: {}", user.getUsername());
 
         Object []args = new Object[] {
             user.getUsername(),
@@ -130,57 +129,57 @@ public class UserDatabase implements Database {
         try {
             count = jdbcTemplate.update(UPDATEUSERQUERY, args);
         } catch (DataAccessException e) {
-            logger.error("Error updating user: {}", e.getMessage());
+            LOGGER.error("Error updating user: {}", e.getMessage());
             return false;
         }
 
         if (count == 0) {
-            logger.info("User not updated");
+            LOGGER.info("User not updated");
             return false;
         }
-        logger.info("User updated");
+        LOGGER.info("User updated");
         return true;
     }
 
     @Override
     public boolean deleteUser(int id) {
-        logger.info("deleteUser called with id: {}", id);
+        LOGGER.info("deleteUser called with id: {}", id);
         Object[] args = {id};
         int count = jdbcTemplate.update(DELETEUSERQUERY, args);
 
         if (count == 0) {
-            logger.info("User not deleted");
+            LOGGER.info("User not deleted");
             return false;
         }
-        logger.info("User deleted");
+        LOGGER.info("User deleted");
         return true;
     }
     
     public int deleteAllUsers() {
-        logger.info("deleteAllUsers called");
+        LOGGER.info("deleteAllUsers called");
         int count = jdbcTemplate.update(DELETEALLUSERSQUERY);
         return count;
     }
 
     public boolean deleteUserByUsername(String username) {
-        logger.info("deleteUserByUsername called with username: {}", username);
+        LOGGER.info("deleteUserByUsername called with username: {}", username);
         Object[] args = {username};
         int count = jdbcTemplate.update(DELETEUSERBYUSERNAMEQUERY, args);
         
         if (count == 0) {
-            logger.info("User not deleted");
+            LOGGER.info("User not deleted");
             return false;
         }
-        logger.info("User deleted");
+        LOGGER.info("User deleted");
         return true;
     }
 
     public List<User> searchUsers(String username) {
-        logger.info("searchUsers called with username: {}", username);
+        LOGGER.info("searchUsers called with username: {}", username);
         Object[] args = {"%" + username + "%"};
         List<User> users = jdbcTemplate.query(SEARCHUSERSQUERY, new UserMapper(), args);
         if (users.size() == 0) {
-            logger.info("No users found");
+            LOGGER.info("No users found");
             return new ArrayList<User>();
         }
         return users;
@@ -204,7 +203,7 @@ public class UserDatabase implements Database {
     }
 
     private boolean userExists(String username) {
-        logger.info("userExists called with username: {}", username);
+        LOGGER.info("userExists called with username: {}", username);
         Object[] args = {username};
         List<User> count = jdbcTemplate.query(GETUSERQUERY, args, new UserMapper());
         return count.size() > 0;

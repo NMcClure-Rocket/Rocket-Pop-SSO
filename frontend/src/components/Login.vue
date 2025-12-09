@@ -3,12 +3,6 @@
     <div class="card login-card">
       <h2>Login to Rocket Pop SSO</h2>
       
-      <!-- TODO: REMOVE IN PRODUCTION - Development Mode Notice -->
-      <div class="dev-notice">
-        🚧 <strong>DEV MODE</strong> - Authentication bypass enabled<br>
-        <small>Enter any username (use "admin" for admin access)</small>
-      </div>
-      
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="username">Username</label>
@@ -37,17 +31,6 @@
           {{ loading ? 'Logging in...' : 'Login' }}
         </button>
       </form>
-      
-      <!-- TODO: REMOVE IN PRODUCTION - Quick Login Buttons -->
-      <div class="dev-shortcuts">
-        <p style="margin-bottom: 10px; font-size: 12px; color: #666;">Quick Login:</p>
-        <button @click="quickLoginAdmin" type="button" class="secondary" style="margin-right: 10px;">
-          Login as Admin
-        </button>
-        <button @click="quickLoginUser" type="button" class="secondary">
-          Login as User
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -78,19 +61,6 @@ const handleLogin = async () => {
   } else {
     errorMessage.value = result.error
   }
-}
-
-// TODO: REMOVE IN PRODUCTION - Quick login helpers
-const quickLoginAdmin = () => {
-  username.value = 'admin'
-  password.value = 'password'
-  handleLogin()
-}
-
-const quickLoginUser = () => {
-  username.value = 'testuser'
-  password.value = 'password'
-  handleLogin()
 }
 </script>
 
@@ -123,28 +93,5 @@ h2 {
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* TODO: REMOVE IN PRODUCTION - Dev mode styles */
-.dev-notice {
-  background: #fff3cd;
-  border: 2px solid #ffc107;
-  border-radius: 5px;
-  padding: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #856404;
-}
-
-.dev-shortcuts {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 2px dashed #e0e0e0;
-  text-align: center;
-}
-
-.dev-shortcuts button {
-  padding: 8px 16px;
-  font-size: 12px;
 }
 </style>
