@@ -1,7 +1,8 @@
 package com.example.rocketpop.repository;
 
-import com.example.rocketpop.model.User;
 import java.util.List;
+
+import com.example.rocketpop.model.User;
 
 /**
  * Database interface. This interface defines functionality to interact with a 
