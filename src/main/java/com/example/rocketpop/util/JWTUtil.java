@@ -35,10 +35,10 @@ public class JWTUtil {
      * Generate token for regular users (with roles 'user' or 'manager')
      * These tokens can be used by external applications
      */
-    public String generateUserToken(String username, String email, String role) {
+    public String generateUserToken(String username, String email, String title) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
-        claims.put("role", role);
+        claims.put("role", title);
         claims.put("type", "user");
         
         return Jwts.builder()
@@ -77,10 +77,10 @@ public class JWTUtil {
     }
     
     /**
-     * Extract role from token
+     * Extract title from token
      */
-    public String extractRole(String token, boolean isAdmin) {
-        return (String) extractClaims(token, isAdmin).get("role");
+    public String extractTitle(String token, boolean isAdmin) {
+        return (String) extractClaims(token, isAdmin).get("title");
     }
     
     /**

@@ -17,7 +17,7 @@
             <strong>Username:</strong> {{ userInfo.username }}
           </div>
           <div class="info-row">
-            <strong>Role:</strong> {{ userInfo.role || (userInfo.isAdmin ? 'Admin' : 'User') }}
+            <strong>Role:</strong> {{ userInfo.title || (userInfo.isAdmin ? 'Admin' : 'User') }}
           </div>
           <div class="info-row" v-if="userInfo.email">
             <strong>Email:</strong> {{ userInfo.email }}

@@ -45,7 +45,7 @@ try {
     Write-Host "✓ User info retrieved!" -ForegroundColor Green
     Write-Host "  Username: $($userInfoResponse.username)" -ForegroundColor White
     Write-Host "  Email: $($userInfoResponse.email)" -ForegroundColor White
-    Write-Host "  Role: $($userInfoResponse.role)" -ForegroundColor White
+    Write-Host "  Title: $($userInfoResponse.title)" -ForegroundColor White
     Write-Host ""
     
     # Test 4: Get all users (admin endpoint)

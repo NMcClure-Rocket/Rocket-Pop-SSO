@@ -33,7 +33,7 @@
             <tbody>
               <tr v-for="user in users" :key="user.username || user.id">
                 <td>{{ user.username }}</td>
-                <td>{{ user.role || (user.isAdmin ? 'Admin' : 'User') }}</td>
+                <td>{{ user.title || 'User' }}</td>
                 <td>{{ user.email || 'N/A' }}</td>
                 <td>
                   <button @click="selectUserForEdit(user)" class="secondary small">Edit</button>
@@ -281,7 +281,7 @@ const editForm = ref({
   username: '',
   password: '',
   email: '',
-  role: 'user'
+  title: 'user'
 })
 const editError = ref('')
 const editSuccess = ref('')
@@ -296,7 +296,9 @@ const loadUsers = async () => {
     const response = await adminAPI.viewUsers(searchUsername.value)
     users.value = Array.isArray(response) ? response : response.users || []
   } catch (error) {
-    viewError.value = error.response?.data?.message || 'Failed to load users'
+    console.error('Error loading users:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load users'
+    viewError.value = errorMsg
   }
 }
 
@@ -312,7 +314,9 @@ const getSpecificUser = async () => {
   try {
     specificUser.value = await adminAPI.getUser(getUserUsername.value)
   } catch (error) {
-    getUserError.value = error.response?.data?.message || 'Failed to get user'
+    console.error('Error getting user:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to get user'
+    getUserError.value = errorMsg
   }
 }
 
@@ -349,7 +353,7 @@ const selectUserForEdit = (user) => {
     username: user.username,
     password: '',
     email: user.email || '',
-    role: user.role || (user.isAdmin ? 'admin' : 'user')
+    title: user.title || 'user'
   }
   editError.value = ''
   editSuccess.value = ''
@@ -371,9 +375,13 @@ const handleEditUser = async () => {
   editSuccess.value = ''
 
   try {
-    const userData = { ...editForm.value }
-    if (!userData.password) {
-      delete userData.password
+    const userData = { 
+      username: editForm.value.username,
+      email: editForm.value.email,
+      title: editForm.value.role  // Map 'role' to 'title' for backend
+    }
+    if (editForm.value.password) {
+      userData.password = editForm.value.password
     }
     
     const response = await adminAPI.editUser(userData)

@@ -44,14 +44,14 @@ public class UserService {
         }
         */
         
-        // Generate appropriate token based on role
+        // Generate appropriate token based on title
         String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
-        String role = user.getTitle() != null ? user.getTitle() : "user";
+        String title = user.getTitle() != null ? user.getTitle() : "user";
         
-        if ("admin".equalsIgnoreCase(role)) {
+        if ("admin".equalsIgnoreCase(title)) {
             return jwtUtil.generateAdminToken(user.getUsername(), email);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), email, role);
+            return jwtUtil.generateUserToken(user.getUsername(), email, title);
         }
     }
     
@@ -110,7 +110,6 @@ public class UserService {
         // BCrypt includes the salt in the hash, so we'll store an empty string for the salt column
         //String encodedPassword = passwordEncoder.encode(password);
         //User user = new User(username, encodedPassword, "");
-        
         boolean created = userDatabase.createUser(user);
         if (!created) {
             throw new RuntimeException("Failed to create user");
