@@ -30,8 +30,8 @@ import org.springframework.stereotype.Repository;
 public class UserDatabase implements Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDatabase.class);
 
-    @Value("${private.key}")
-    private String privateKeyString;
+    // @Value("${private.key}")
+    // private String privateKeyString;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -255,6 +255,6 @@ public class UserDatabase implements Database {
         }
 
         // TODO: Call DB
-
+        
     }
 }
