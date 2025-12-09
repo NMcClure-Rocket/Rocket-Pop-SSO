@@ -76,6 +76,8 @@ public class UserService {
         }
         
         user.setPassword(passwordEncoder.encode(newPassword));
+        // BCrypt includes the salt in the hash, so we keep the salt column empty
+        user.setSalt("");
         userDatabase.updateUser(user);
     }
     
@@ -89,8 +91,10 @@ public class UserService {
             throw new RuntimeException("Username already exists");
         }
         
+        // BCrypt includes the salt in the hash, so we'll store an empty string for the salt column
         String encodedPassword = passwordEncoder.encode(password);
-        User user = new User(username, encodedPassword, email);
+        User user = new User(username, encodedPassword, "");
+        user.setEmail(email);
         user.setTitle(role);
         
         boolean created = userDatabase.createUser(user);
@@ -109,6 +113,8 @@ public class UserService {
         
         if (password != null && !password.isEmpty()) {
             user.setPassword(passwordEncoder.encode(password));
+            // BCrypt includes the salt in the hash, so we keep the salt column empty
+            user.setSalt("");
         }
         
         if (email != null && !email.isEmpty()) {
