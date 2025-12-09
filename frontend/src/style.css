@@ -74,7 +74,8 @@ button.primary {
 }
 
 button.primary:hover {
-  background: var(--rocket-blue-dark);
+  background: var(--secondary);
+  color: white;
 }
 
 button.secondary {

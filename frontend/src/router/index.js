@@ -3,6 +3,10 @@ import { useAuthStore } from '../stores/auth'
 import Login from '../components/Login.vue'
 import Dashboard from '../components/Dashboard.vue'
 import AdminPanel from '../components/AdminPanel.vue'
+import PrivacyPolicy from '../components/PrivacyPolicy.vue'
+import TermsOfService from '../components/TermsOfService.vue'
+import Documentation from '../components/Documentation.vue'
+import Support from '../components/Support.vue'
 
 const routes = [
   {
@@ -25,6 +29,26 @@ const routes = [
     name: 'Admin',
     component: AdminPanel,
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/privacy',
+    name: 'PrivacyPolicy',
+    component: PrivacyPolicy
+  },
+  {
+    path: '/terms',
+    name: 'TermsOfService',
+    component: TermsOfService
+  },
+  {
+    path: '/documentation',
+    name: 'Documentation',
+    component: Documentation
+  },
+  {
+    path: '/support',
+    name: 'Support',
+    component: Support
   }
 ]
 
