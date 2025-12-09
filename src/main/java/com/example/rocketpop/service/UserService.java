@@ -18,7 +18,7 @@ public class UserService {
     @Autowired
     private JWTUtil jwtUtil;
     
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    //private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     /**
      * Authenticate user and generate appropriate token
@@ -30,9 +30,19 @@ public class UserService {
             throw new RuntimeException("Invalid username or password");
         }
         
+        if (!password.equals(user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+        /*
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+        */
+        /*
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
+        */
         
         // Generate appropriate token based on role
         String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
@@ -71,11 +81,17 @@ public class UserService {
     public void updatePassword(String username, String oldPassword, String newPassword) {
         User user = getUserByUsername(username);
         
+        if (!user.getPassword().equals(oldPassword)) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+        /*
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
         }
+        */
         
-        user.setPassword(passwordEncoder.encode(newPassword));
+        //user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(newPassword);
         // BCrypt includes the salt in the hash, so we keep the salt column empty
         user.setSalt("");
         userDatabase.updateUser(user);
@@ -92,8 +108,9 @@ public class UserService {
         }
         
         // BCrypt includes the salt in the hash, so we'll store an empty string for the salt column
-        String encodedPassword = passwordEncoder.encode(password);
-        User user = new User(username, encodedPassword, "");
+        //String encodedPassword = passwordEncoder.encode(password);
+        //User user = new User(username, encodedPassword, "");
+        User user = new User(username, password, "");
         user.setEmail(email);
         user.setTitle(role);
         
@@ -112,7 +129,8 @@ public class UserService {
         User user = getUserByUsername(username);
         
         if (password != null && !password.isEmpty()) {
-            user.setPassword(passwordEncoder.encode(password));
+            //user.setPassword(passwordEncoder.encode(password));
+            user.setPassword(password);
             // BCrypt includes the salt in the hash, so we keep the salt column empty
             user.setSalt("");
         }

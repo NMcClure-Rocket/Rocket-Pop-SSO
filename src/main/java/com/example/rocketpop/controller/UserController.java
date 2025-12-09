@@ -17,10 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = "http://localhost:42067")
 public class UserController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UserService userService;
@@ -58,6 +63,8 @@ public class UserController {
     public ResponseEntity<?> changePassword(
             @RequestHeader("Authorization") String token,
             @RequestBody PasswordChangeRequest passwordChangeRequest) {
+
+            LOGGER.info("changePassword called with token: " + token);
         try {
             // Validate token
             if (!userService.validateUserToken(token)) {
@@ -88,6 +95,7 @@ public class UserController {
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
+            LOGGER.error("Error changing password", e);
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
