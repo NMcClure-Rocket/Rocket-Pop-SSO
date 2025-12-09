@@ -4,8 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,6 +26,9 @@ public class PasswordHasher {
 
     @Value("${private.key}")
     private String privateKeyString;
+
+    @Value("${public.key}")
+    private String publicKeyString;
 
 
     /**
@@ -83,5 +88,31 @@ public class PasswordHasher {
         return plaintext;
     }
 
+    public String rsaEncrypt(String plaintext) {
+        Base64.Encoder encoder = Base64.getEncoder();
+        Base64.Decoder decoder = Base64.getDecoder();
+        String ciphertext = null;
+        PublicKey publicKey = null;
 
+        try {
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            byte[] publicKeyByte = decoder.decode(publicKeyString);
+            publicKey = factory.generatePublic(new X509EncodedKeySpec(publicKeyByte));
+        } catch (Exception e) {
+            logger.error("Error decrypting password", e);
+        }
+
+        // Encrypt plaintext
+        try {
+            Cipher encryptCipher = Cipher.getInstance("RSA");
+            encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+            byte[] secretByte = plaintext.getBytes(StandardCharsets.UTF_8);
+            byte[] encByte = encryptCipher.doFinal(secretByte);
+            ciphertext = encoder.encodeToString(encByte);
+        } catch (Exception e) {
+            logger.error("Error decrypting password", e);
+        }
+
+        return ciphertext;
+    }
 }
