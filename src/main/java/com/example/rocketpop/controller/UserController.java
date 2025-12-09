@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
+import com.example.rocketpop.util.PasswordHasher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+
+    private final PasswordHasher passwordHasher = new PasswordHasher();
 
     @GetMapping("/info")
     public ResponseEntity<?> getSelf(@RequestHeader("Authorization") String token) {
@@ -83,10 +87,12 @@ public class UserController {
             
             // Get user from token and update password
             User user = userService.getUserFromToken(token.replace("Bearer ", ""));
+
+            String newPasswordHash = passwordHasher.hashPassword(passwordChangeRequest.getNewPassword(), user.getSalt());
             userService.updatePassword(
                 user.getUsername(), 
-                passwordChangeRequest.getOldPassword(), 
-                passwordChangeRequest.getNewPassword()
+                user.getPassword(),
+                newPasswordHash
             );
             
             Map<String, String> response = new HashMap<>();

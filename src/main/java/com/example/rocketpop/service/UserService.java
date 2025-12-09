@@ -100,9 +100,9 @@ public class UserService {
     /**
      * Create new user
      */
-    public User createUser(String username, String password, String email, String role) {
+    public User createUser(User user) {
         // Check if user already exists
-        User existingUser = userDatabase.getUser(username);
+        User existingUser = userDatabase.getUser(user.getUsername());
         if (existingUser != null) {
             throw new RuntimeException("Username already exists");
         }
@@ -110,49 +110,30 @@ public class UserService {
         // BCrypt includes the salt in the hash, so we'll store an empty string for the salt column
         //String encodedPassword = passwordEncoder.encode(password);
         //User user = new User(username, encodedPassword, "");
-        User user = new User(username, password, "");
-        user.setEmail(email);
-        user.setTitle(role);
         
         boolean created = userDatabase.createUser(user);
         if (!created) {
             throw new RuntimeException("Failed to create user");
         }
         
-        return userDatabase.getUser(username);
+        return userDatabase.getUser(user.getUsername());
     }
     
     /**
      * Update existing user
      */
-    public User updateUser(String username, String password, String email, String role, String location) {
-        User user = getUserByUsername(username);
-        
-        if (password != null && !password.isEmpty()) {
-            //user.setPassword(passwordEncoder.encode(password));
-            user.setPassword(password);
-            // BCrypt includes the salt in the hash, so we keep the salt column empty
-            user.setSalt("");
-        }
-        
-        if (email != null && !email.isEmpty()) {
-            user.setEmail(email);
-        }
-        
-        if (role != null && !role.isEmpty()) {
-            user.setTitle(role);
-        }
-        
-        if (location != null && !location.isEmpty()) {
-            user.setLocation(Integer.parseInt(location));
+    public User updateUser(User user) {
+        if (!userDatabase.userExists(user.getUsername())) {
+            throw new RuntimeException("User not found");
         }
         
         boolean updated = userDatabase.updateUser(user);
+
         if (!updated) {
             throw new RuntimeException("Failed to update user");
         }
         
-        return userDatabase.getUser(username);
+        return userDatabase.getUser(user.getUsername());
     }
     
     /**
@@ -195,5 +176,12 @@ public class UserService {
         token = jwtUtil.cleanToken(token);
         boolean isAdmin = jwtUtil.isAdminToken(token);
         return jwtUtil.validateToken(token, isAdmin);
+    }
+
+    /**
+     * Get user salt
+     */
+    public String getUserSalt(String username) {
+        return userDatabase.getUserSalt(username);
     }
 }

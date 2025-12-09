@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
+import com.example.rocketpop.util.PasswordHasher;
 
 @RestController
 @RequestMapping("/admin")
@@ -30,10 +31,13 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+
+    private final PasswordHasher passwordHasher = new PasswordHasher();
+
     @PostMapping("/user/create")
     public ResponseEntity<?> createUser(
             @RequestHeader("Authorization") String token,
-            @RequestBody UserRequest userRequest) {
+            @RequestBody User userRequest) {
         try {
             // Validate admin token
             if (!userService.validateAdminToken(token)) {
@@ -43,12 +47,16 @@ public class AdminController {
             }
             
             // Create new user with 'user' or 'manager' role
-            User newUser = userService.createUser(
-                userRequest.getUsername(),
-                userRequest.getPassword(),
-                userRequest.getEmail(),
-                userRequest.getTitle()
-            );
+            String salt = passwordHasher.getRandomSalt();
+            String passwordHash = passwordHasher.hashPassword(
+                    passwordHasher.rsaDecrypt(userRequest.getPassword()),
+                    salt
+                    );
+
+            userRequest.setPassword(passwordHash);
+            userRequest.setSalt(salt);
+
+            User newUser = userService.createUser(userRequest);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User created successfully");
@@ -74,7 +82,7 @@ public class AdminController {
     @PostMapping("/adminuser/create")
     public ResponseEntity<?> createAdmin(
             @RequestHeader("Authorization") String token,
-            @RequestBody UserRequest userRequest) {
+            @RequestBody User userRequest) {
         try {
             // Validate admin token
             if (!userService.validateAdminToken(token)) {
@@ -84,12 +92,15 @@ public class AdminController {
             }
             
             // Create new admin user (internal SSO use only)
-            User newAdmin = userService.createUser(
-                userRequest.getUsername(),
-                userRequest.getPassword(),
-                userRequest.getEmail(),
-                "admin"
-            );
+            String salt = passwordHasher.getRandomSalt();
+            String passwordHash = passwordHasher.hashPassword(
+                    passwordHasher.rsaDecrypt(userRequest.getPassword()),
+                    salt
+                    );
+            userRequest.setSalt(salt);
+            userRequest.setPassword(passwordHash);
+
+            User newAdmin = userService.createUser(userRequest);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Admin user created successfully");
@@ -115,7 +126,7 @@ public class AdminController {
     @PutMapping("/user/edit")
     public ResponseEntity<?> editUser(
             @RequestHeader("Authorization") String token,
-            @RequestBody UserRequest userRequest) {
+            @RequestBody User userRequest) {
         try {
             // Validate admin token
             if (!userService.validateAdminToken(token)) {
@@ -124,14 +135,18 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
-            // Update user
-            User updatedUser = userService.updateUser(
-                userRequest.getUsername(),
-                userRequest.getPassword(),
-                userRequest.getEmail(),
-                userRequest.getTitle(),
-                userRequest.getLocation()
-            );
+            String salt = userService.getUserSalt(userRequest.getUsername());
+            if (userRequest.getPassword() == null || userRequest.getPassword().isEmpty()) {
+                
+            } else {
+                String passwordHash = passwordHasher.hashPassword(
+                        passwordHasher.rsaDecrypt(userRequest.getPassword()),
+                        salt
+                        );
+                userRequest.setPassword(passwordHash);
+            }
+
+            User updatedUser = userService.updateUser(userRequest);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User updated successfully");
@@ -261,52 +276,4 @@ public class AdminController {
         }
     }
     
-    // Inner class for user request
-    public static class UserRequest {
-        private String username;
-        private String password;
-        private String email;
-        private String title;
-        private String location;
-        
-        public String getUsername() {
-            return username;
-        }
-        
-        public void setUsername(String username) {
-            this.username = username;
-        }
-        
-        public String getPassword() {
-            return password;
-        }
-        
-        public void setPassword(String password) {
-            this.password = password;
-        }
-        
-        public String getEmail() {
-            return email;
-        }
-        
-        public void setEmail(String email) {
-            this.email = email;
-        }
-        
-        public String getTitle() {
-            return title;
-        }
-        
-        public void setTitle(String title) {
-            this.title = title;
-        }
-        
-        public String getLocation() {
-            return location;
-        }
-        
-        public void setLocation(String location) {
-            this.location = location;
-        }
-    }
 }

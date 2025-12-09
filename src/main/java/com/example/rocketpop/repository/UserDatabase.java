@@ -1,18 +1,9 @@
 package com.example.rocketpop.repository;
 
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.MessageDigest;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
-
-import javax.crypto.Cipher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +21,6 @@ import org.springframework.stereotype.Repository;
 public class UserDatabase implements Database {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDatabase.class);
 
-    @Value("${private.key}")
-    private String privateKeyString;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -45,6 +34,7 @@ public class UserDatabase implements Database {
     private static final String DELETEUSERQUERY = "DELETE FROM users WHERE id = ?";
     private static final String DELETEUSERBYUSERNAMEQUERY = "DELETE FROM users WHERE username = ?";
     private static final String DELETEALLUSERSQUERY = "DELETE FROM users";
+    private static final String GETUSERSALTQUERY = "SELECT salt FROM users WHERE username = ?";
 
     @Override
     public User getUser(String username) {
@@ -202,59 +192,23 @@ public class UserDatabase implements Database {
         }
     }
 
-    private boolean userExists(String username) {
+    public boolean userExists(String username) {
         LOGGER.info("userExists called with username: {}", username);
         Object[] args = {username};
         List<User> count = jdbcTemplate.query(GETUSERQUERY, args, new UserMapper());
         return count.size() > 0;
     }
 
-    /**
-     * Decrypt username and password sent by user, then generate and return a salted hash of the password.
-     */
-    public void hashPassword(String ciphertext) {
-        Base64.Decoder decoder = Base64.getDecoder();
-        String plaintext = null;
-        PrivateKey privateKey = null;
-
-        try {
-            KeyFactory factory = KeyFactory.getInstance("RSA");
-            byte[] privateKeyByte = decoder.decode(privateKeyString);
-            privateKey = factory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyByte));
-        } catch (Exception e) {
-            System.out.println(e);
+    public String getUserSalt(String username) {
+        LOGGER.info("getUserSalt called with username: {}", username);
+        Object[] args = {username};
+        List<User> users = jdbcTemplate.query(GETUSERSALTQUERY, args, new UserMapper());
+        if (users.size() == 0) {
+            LOGGER.info("No user found with username: {}", username);
+            return null;
         }
-
-        // Decrypt ciphertext
-        try {
-            byte[] cipherBytes = decoder.decode(ciphertext);
-            Cipher decryptCipher = Cipher.getInstance("RSA");
-            decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
-            byte[] decryptBytes = decryptCipher.doFinal(cipherBytes);
-            plaintext = new String(decryptBytes, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        // Isolate password
-        String[] splitPlaintext = plaintext.split(",");
-        String username = splitPlaintext[0];
-        String rawPassword = splitPlaintext[1];
-
-        // Hash password
-        SecureRandom rng = new SecureRandom();
-        byte[] salt = new byte[16];
-        byte[] hashedPassword = null;
-        try{
-            rng.nextBytes(salt);
-            MessageDigest md = MessageDigest.getInstance("SHA-512");
-            md.update(salt);
-            hashedPassword = md.digest(rawPassword.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        // TODO: Call DB
-
+        LOGGER.info("Found user: {}", users.get(0).getUsername());
+        return users.get(0).getSalt();
     }
+
 }
