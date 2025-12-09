@@ -296,7 +296,9 @@ const loadUsers = async () => {
     const response = await adminAPI.viewUsers(searchUsername.value)
     users.value = Array.isArray(response) ? response : response.users || []
   } catch (error) {
-    viewError.value = error.response?.data?.message || 'Failed to load users'
+    console.error('Error loading users:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load users'
+    viewError.value = errorMsg
   }
 }
 
@@ -312,7 +314,9 @@ const getSpecificUser = async () => {
   try {
     specificUser.value = await adminAPI.getUser(getUserUsername.value)
   } catch (error) {
-    getUserError.value = error.response?.data?.message || 'Failed to get user'
+    console.error('Error getting user:', error)
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to get user'
+    getUserError.value = errorMsg
   }
 }
 
