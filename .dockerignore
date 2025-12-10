@@ -1,0 +1,8 @@
+target/
+.git
+*.iml
+*.log
+*.md
+node_modules/
+frontend/
+.env
