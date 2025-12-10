@@ -1,0 +1,44 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main, dev, travis, frederick, nate, ethan ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Run tests with Maven
+      run: ./mvnw test
+    
+    - name: Generate test report
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Maven Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+        fail-on-error: true
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: target/surefire-reports/

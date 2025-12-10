@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+/frontend/.vite
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +33,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Testbed for JS code ###
+test_js/
+
+logs/
+AGENTS.md
+
+*.env
+debug.log
