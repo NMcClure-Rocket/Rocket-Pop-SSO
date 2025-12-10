@@ -63,6 +63,10 @@ This will start both the backend (port 42068) and frontend (port 42067) in separ
 .\mvnw.cmd spring-boot:run
 ```
 
+```bash
+mvn spring-boot:run
+```
+
 **Frontend:**
 ```powershell
 cd frontend
@@ -87,8 +91,8 @@ Once both servers are running, open your browser to:
 - ✅ **View Users** - List all users with optional search
 - ✅ **Get User** - Retrieve specific user details
 - ✅ **Create User** - Add new regular users
-- ✅ **Create Admin** - Promote users to admin role
-- ✅ **Edit User** - Update user information and roles
+- ✅ **Create Admin** - Promote users to admin title
+- ✅ **Edit User** - Update user information and titles
 - ✅ **Delete User** - Remove users from the system
 
 ## API Endpoints
@@ -179,6 +183,21 @@ npm run preview
 # Run tests
 .\mvnw.cmd test
 ```
+```bash
+# Start database
+sudo docker-compose up -d
+
+# Run
+mvn spring-boot:run
+
+# Build
+mvn clean package
+
+# Run tests
+# Note: does not require the docker container to be running
+mvn test
+```
+
 
 ## Next Steps
 

@@ -22,14 +22,14 @@
         </div>
         <div class="footer-section white">
           <div class="footer-links">
-            <a href="#" class="footer-link">Privacy Policy</a>
-            <a href="#" class="footer-link">Terms of Service</a>
+            <router-link to="/privacy" class="footer-link">Privacy Policy</router-link>
+            <router-link to="/terms" class="footer-link">Terms of Service</router-link>
           </div>
         </div>
         <div class="footer-section blue">
           <div class="footer-links">
-            <a href="#" class="footer-link">Documentation</a>
-            <a href="#" class="footer-link">Support</a>
+            <router-link to="/documentation" class="footer-link">Documentation</router-link>
+            <router-link to="/support" class="footer-link">Support</router-link>
           </div>
         </div>
         <div class="popsicle-stick"></div>
@@ -108,5 +108,32 @@ h1 {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-link {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 5px 0;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+  transform: translateX(5px);
+}
+
+.footer-section.white .footer-link {
+  color: var(--rocket-blue);
+}
+
+.footer-section.blue .footer-link {
+  color: white;
 }
 </style>

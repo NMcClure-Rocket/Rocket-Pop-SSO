@@ -1,23 +1,31 @@
-# Start both Frontend and Backend servers
+﻿# Start both Frontend and Backend servers
 Write-Host "Starting Rocket Pop SSO - Full Stack" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
-# Start backend in a new window
+# Start backend as a background job
 Write-Host "Starting Backend Server..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; .\start-backend.ps1"
+$backendJob = Start-Job -ScriptBlock {
+    Set-Location $using:PSScriptRoot
+    .\mvnw.cmd spring-boot:run
+}
+Write-Host "Backend job started (Job ID: $($backendJob.Id))" -ForegroundColor Gray
 
 # Wait for backend to start
 Write-Host "Waiting for backend to initialize..." -ForegroundColor Yellow
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 15
 
-# Start frontend in a new window
+# Start frontend as a background job
 Write-Host "Starting Frontend Server..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; .\start-frontend.ps1"
+$frontendJob = Start-Job -ScriptBlock {
+    Set-Location "$using:PSScriptRoot\frontend"
+    npm run dev
+}
+Write-Host "Frontend job started (Job ID: $($frontendJob.Id))" -ForegroundColor Gray
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "✓ Both servers are starting..." -ForegroundColor Green
+Write-Host "Both servers are running as background jobs!" -ForegroundColor Green
 Write-Host ""
 Write-Host "URLs:" -ForegroundColor Cyan
 Write-Host "  Frontend:     http://localhost:42067" -ForegroundColor White
@@ -30,6 +38,12 @@ Write-Host "  Admin    - username: admin      password: admin123" -ForegroundCol
 Write-Host "  User     - username: testuser   password: user123" -ForegroundColor White
 Write-Host "  Manager  - username: manager1   password: manager123" -ForegroundColor White
 Write-Host ""
-Write-Host "Both servers are running in separate windows." -ForegroundColor Yellow
+Write-Host "Job Management:" -ForegroundColor Cyan
+Write-Host "  View jobs:        Get-Job" -ForegroundColor White
+Write-Host "  Stop backend:     Stop-Job -Id $($backendJob.Id)" -ForegroundColor White
+Write-Host "  Stop frontend:    Stop-Job -Id $($frontendJob.Id)" -ForegroundColor White
+Write-Host "  Stop all jobs:    Get-Job | Stop-Job" -ForegroundColor White
+Write-Host "  View output:      Receive-Job -Id <JobId> -Keep" -ForegroundColor White
+Write-Host ""
 Write-Host "Open http://localhost:42067 in your browser to access the app." -ForegroundColor Cyan
 Write-Host ""

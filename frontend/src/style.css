@@ -74,7 +74,8 @@ button.primary {
 }
 
 button.primary:hover {
-  background: var(--rocket-blue-dark);
+  background: var(--secondary);
+  color: white;
 }
 
 button.secondary {
@@ -123,6 +124,17 @@ label {
 
 .form-group {
   margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .error-message {

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:42068',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -23,17 +23,15 @@ export const authAPI = {
     return response.data
   },
 
-  // Validate - In: token; Out: user (JSON)
-  validate: async (token) => {
-    const response = await api.get('/validate', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+  // GET Self - Header: token; Out: user (JSON)
+  getSelf: async () => {
+    const response = await api.get('/user/info')
     return response.data
   },
 
-  // GET Self - Header: token; Out: user (JSON) (same as validate)
-  getSelf: async () => {
-    const response = await api.get('/self')
+  // Ping - Check if backend is online
+  ping: async () => {
+    const response = await api.get('/ping')
     return response.data
   }
 }
@@ -41,45 +39,46 @@ export const authAPI = {
 export const userAPI = {
   // POST Change Password - Header: token, In: old password, new password; Out: message
   changePassword: async (oldPassword, newPassword) => {
-    const response = await api.post('/change-password', { oldPassword, newPassword })
+    const response = await api.post('/user/updatepassword', { oldPassword, newPassword })
     return response.data
   }
 }
 
 export const adminAPI = {
-  // POST Create - Header: admin token, In: user (JSON); Out: message (JSON)
+  // POST Create User - Header: admin token, In: user (JSON); Out: message (JSON)
   createUser: async (user) => {
-    const response = await api.post('/create', user)
+    const response = await api.post('/admin/user/create', user)
     return response.data
   },
 
-  // POST CreateAdmin - Header: admin token, In: adminuser (JSON); Out: message (JSON)
+  // POST Create Admin - Header: admin token, In: adminuser (JSON); Out: message (JSON)
   createAdmin: async (adminUser) => {
-    const response = await api.post('/createadmin', adminUser)
+    const response = await api.post('/admin/adminuser/create', adminUser)
     return response.data
   },
 
-  // PUT Edit - Header: admin token; In: user (JSON); Out: message
+  // PUT Edit User - Header: admin token; In: user (JSON); Out: message
   editUser: async (user) => {
-    const response = await api.put('/edit', user)
+    const response = await api.put('/admin/user/edit', user)
     return response.data
   },
 
-  // POST Delete - Header: admin token; In: userid; Out: message
-  deleteUser: async (userId) => {
-    const response = await api.post('/delete', { userId })
+  // POST Delete User - Header: admin token; In: username; Out: message
+  deleteUser: async (username) => {
+    const response = await api.post(`/admin/user/delete/${username}`)
     return response.data
   },
 
-  // GET View Users - Header: admin token; In: username; Out: user list (JSON)
+  // GET View All Users - Header: admin token; In: username (optional filter); Out: user list (JSON)
   viewUsers: async (username = '') => {
-    const response = await api.get('/view-users', { params: { username } })
+    const params = username ? { username } : {}
+    const response = await api.get('/admin/user/getall', { params })
     return response.data
   },
 
-  // GET Get User - Header: admin token; In: username; Out: user (JSON)
+  // GET Get Specific User - Header: admin token; In: username; Out: user (JSON)
   getUser: async (username) => {
-    const response = await api.get('/get-user', { params: { username } })
+    const response = await api.get(`/admin/user/get/${username}`)
     return response.data
   }
 }
