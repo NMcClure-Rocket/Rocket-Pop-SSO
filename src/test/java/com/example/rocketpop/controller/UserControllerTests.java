@@ -204,4 +204,82 @@ public class UserControllerTests {
                 .content(passwordChangeJson))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    public void testChangePasswordEmptyOldPassword() throws Exception {
+        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
+        String passwordChangeJson = objectMapper.writeValueAsString(
+            new UserController.PasswordChangeRequest() {{
+                setOldPassword("");
+                setNewPassword(encodedNewPassword);
+            }}
+        );
+
+        mockMvc.perform(post("/user/updatepassword")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordChangeJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Old password and new password are required"));
+    }
+
+    @Test
+    public void testChangePasswordNullPasswords() throws Exception {
+        String passwordChangeJson = objectMapper.writeValueAsString(
+            new UserController.PasswordChangeRequest() {{
+                setOldPassword(null);
+                setNewPassword(null);
+            }}
+        );
+
+        mockMvc.perform(post("/user/updatepassword")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordChangeJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Old password and new password are required"));
+    }
+
+    // Test getUsersnames endpoint
+    @Test
+    public void testGetUsernamesSuccess() throws Exception {
+        // Add users with firstName/lastName
+        User user3 = new User("user3", "password", "");
+        user3.setFirstName("John");
+        user3.setLastName("Doe");
+        user3.setTitle("user");
+        userDatabase.createUser(user3);
+
+        mockMvc.perform(get("/user/getusersnames"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(3)); // admin, testuser, user3
+    }
+
+    @Test
+    public void testGetUsernamesReturnsCorrectFields() throws Exception {
+        // Add a user with specific name data
+        User detailedUser = new User("detaileduser", "password", "");
+        detailedUser.setFirstName("Jane");
+        detailedUser.setLastName("Smith");
+        detailedUser.setTitle("manager");
+        userDatabase.createUser(detailedUser);
+
+        mockMvc.perform(get("/user/getusersnames"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[?(@.firstName == 'Jane')].lastName").value("Smith"))
+                .andExpect(jsonPath("$[?(@.firstName == 'Jane')].title").value("manager"));
+    }
+
+    @Test
+    public void testGetUsernamesEmptyDatabase() throws Exception {
+        // Clear all users
+        userDatabase.deleteAllUsers();
+
+        mockMvc.perform(get("/user/getusersnames"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }
