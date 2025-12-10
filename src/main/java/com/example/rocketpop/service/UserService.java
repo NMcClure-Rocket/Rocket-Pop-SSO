@@ -159,6 +159,11 @@ public class UserService {
         return userDatabase.getAllUsers();
     }
     
+
+    /** Gets all of the usernames of all users */
+    public List<String> getUsernames() {
+        return userDatabase.getUsernames();
+    }
     /**
      * Search users by username
      */
@@ -192,4 +197,5 @@ public class UserService {
     public String getUserSalt(String username) {
         return userDatabase.getUserSalt(username);
     }
+
 }
