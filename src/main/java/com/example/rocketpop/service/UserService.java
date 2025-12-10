@@ -4,7 +4,6 @@ import com.example.rocketpop.model.User;
 import com.example.rocketpop.repository.UserDatabase;
 import com.example.rocketpop.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
