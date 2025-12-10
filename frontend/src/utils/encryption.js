@@ -1,4 +1,4 @@
-import { KEYUTIL, KJUR } from 'jsrsasign'
+import { KEYUTIL, KJUR, RSAKey, hextob64 } from 'jsrsasign'
 
 // Public key for RSA encryption - must match the backend's public.key in application.properties
 const publicKeyPEM = `
@@ -16,19 +16,21 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArkOuYMSFFatZA+PhgW6cVMVBPBdePouwHMsZ
 export function encryptPassword(username, password) {
   try {
     console.log('Starting encryption...')
-    console.log('Public key PEM:', publicKeyPEM)
     
     // Parse the public key
     const pub = KEYUTIL.getKey(publicKeyPEM)
-    console.log('Public key parsed:', pub)
+    console.log('Public key parsed successfully')
 
-    // Encrypt using PKCS#1 v1.5 padding (RSA)
-    // Using RSAKey.encrypt instead of KJUR.crypto.Cipher.encrypt
-    const encryptedHex = pub.encrypt(password)
-    console.log('Encrypted hex:', encryptedHex)
+    // Convert password to hex
+    const passwordHex = stringToHex(password)
+    console.log('Password converted to hex')
+    
+    // Encrypt using RSA - the correct method is via KJUR.crypto.Cipher
+    const encryptedHex = KJUR.crypto.Cipher.encrypt(passwordHex, pub)
+    console.log('Password encrypted')
     
     // Convert hex to base64 for Java backend
-    const encryptedBase64 = hexToBase64(encryptedHex)
+    const encryptedBase64 = hextob64(encryptedHex)
     console.log('Encrypted base64:', encryptedBase64)
 
     return {
@@ -44,26 +46,24 @@ export function encryptPassword(username, password) {
 }
 
 /**
- * Convert hex string to base64
- * @param {string} hexString - Hex encoded string
- * @returns {string} Base64 encoded string
+ * Convert string to hex
+ * @param {string} str - Input string
+ * @returns {string} Hex encoded string
  */
-function hexToBase64(hexString) {
-  // Convert hex string to byte array
-  const bytes = new Uint8Array(hexString.length / 2)
-  for (let i = 0; i < hexString.length; i += 2) {
-    bytes[i / 2] = parseInt(hexString.substr(i, 2), 16)
+function stringToHex(str) {
+  let hex = ''
+  for (let i = 0; i < str.length; i++) {
+    const charCode = str.charCodeAt(i)
+    const hexValue = charCode.toString(16).padStart(2, '0')
+    hex += hexValue
   }
-  
-  // Convert byte array to base64
-  let binary = ''
-  bytes.forEach(byte => binary += String.fromCharCode(byte))
-  return btoa(binary)
+  return hex
 }
 
 /**
  * Helper function for backward compatibility with hex2b64
+ * Now uses jsrsasign's built-in hextob64 function
  */
 export function hex2b64(hexString) {
-  return hexToBase64(hexString)
+  return hextob64(hexString)
 }
