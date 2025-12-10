@@ -15,21 +15,30 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArkOuYMSFFatZA+PhgW6cVMVBPBdePouwHMsZ
  */
 export function encryptPassword(username, password) {
   try {
+    console.log('Starting encryption...')
+    console.log('Public key PEM:', publicKeyPEM)
+    
     // Parse the public key
     const pub = KEYUTIL.getKey(publicKeyPEM)
+    console.log('Public key parsed:', pub)
 
     // Encrypt using PKCS#1 v1.5 padding (RSA)
-    const encryptedHex = KJUR.crypto.Cipher.encrypt(password, pub, 'RSA')
+    // Using RSAKey.encrypt instead of KJUR.crypto.Cipher.encrypt
+    const encryptedHex = pub.encrypt(password)
+    console.log('Encrypted hex:', encryptedHex)
     
     // Convert hex to base64 for Java backend
     const encryptedBase64 = hexToBase64(encryptedHex)
+    console.log('Encrypted base64:', encryptedBase64)
 
     return {
       username: username,
       password: encryptedBase64
     }
   } catch (error) {
-    console.error('Encryption error:', error)
+    console.error('Encryption error details:', error)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
     throw new Error('Failed to encrypt password')
   }
 }
