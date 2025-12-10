@@ -1,4 +1,4 @@
-import { KEYUTIL, KJUR } from 'jsrsasign'
+//import { KEYUTIL, KJUR } from 'jsrsasign'
 
 // Public key for RSA encryption - must match the backend's public.key in application.properties
 const publicKeyPEM = `
@@ -24,7 +24,7 @@ export function encryptPassword(username, password) {
 
     // Encrypt using PKCS#1 v1.5 padding (RSA)
     // Using RSAKey.encrypt instead of KJUR.crypto.Cipher.encrypt
-    const encryptedHex = pub.encrypt(password)
+    const encryptedHex = KJUR.crypto.Cipher.encrypt(password, pub, 'RSA')
     console.log('Encrypted hex:', encryptedHex)
     
     // Convert hex to base64 for Java backend
