@@ -20,3 +20,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build: .
+    container_name: rocketpop-backend
+    ports:
+      - "42068:42068"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_PROFILES_ACTIVE=mysql
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend
+    container_name: rocketpop-frontend
+    ports:
+      - "42067:42067"
+    depends_on:
+      - backend
