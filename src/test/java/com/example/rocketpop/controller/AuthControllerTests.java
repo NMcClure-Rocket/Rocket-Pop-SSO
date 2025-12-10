@@ -18,7 +18,11 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.repository.UserDatabase;
+import com.example.rocketpop.util.PasswordHasher;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -34,7 +38,7 @@ public class AuthControllerTests {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final Logger logger = LoggerFactory.getLogger(AuthControllerTests.class);
 
     @BeforeEach
     public void setUp() {
@@ -42,15 +46,20 @@ public class AuthControllerTests {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         
         // Create test users
-        User adminUser = new User("admin", passwordEncoder.encode("admin123"), "");
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
+        User adminUser = new User("admin", encodedPassword, "");
         adminUser.setEmail("admin@test.com");
         adminUser.setTitle("admin");
         userDatabase.createUser(adminUser);
 
-        User testUser = new User("testuser", passwordEncoder.encode("user123"), "");
+        encodedPassword = passwordHasher.rsaEncrypt("user123");
+        User testUser = new User("testuser", encodedPassword, "");
         testUser.setEmail("user@test.com");
         testUser.setTitle("user");
         userDatabase.createUser(testUser);
+        logger.info("Created test users");
+        logger.info("User count: {}", userDatabase.getAllUsers().size());
     }
 
     @AfterEach
@@ -69,10 +78,12 @@ public class AuthControllerTests {
 
     @Test
     public void testLoginSuccess() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
         String loginJson = objectMapper.writeValueAsString(
             new AuthController.LoginRequest() {{
                 setUsername("admin");
-                setPassword("admin123");
+                setPassword(encodedPassword);
             }}
         );
 
@@ -86,10 +97,12 @@ public class AuthControllerTests {
 
     @Test
     public void testLoginInvalidUsername() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("wrongpass");
         String loginJson = objectMapper.writeValueAsString(
             new AuthController.LoginRequest() {{
                 setUsername("nonexistent");
-                setPassword("wrongpass");
+                setPassword(encodedPassword);
             }}
         );
 
@@ -102,10 +115,12 @@ public class AuthControllerTests {
 
     @Test
     public void testLoginInvalidPassword() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("wrongpassword");
         String loginJson = objectMapper.writeValueAsString(
             new AuthController.LoginRequest() {{
                 setUsername("admin");
-                setPassword("wrongpassword");
+                setPassword(encodedPassword);
             }}
         );
 
@@ -118,10 +133,12 @@ public class AuthControllerTests {
 
     @Test
     public void testLoginEmptyUsername() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
         String loginJson = objectMapper.writeValueAsString(
             new AuthController.LoginRequest() {{
                 setUsername("");
-                setPassword("admin123");
+                setPassword(encodedPassword);
             }}
         );
 
@@ -148,10 +165,12 @@ public class AuthControllerTests {
 
     @Test
     public void testLoginUserRole() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
         String loginJson = objectMapper.writeValueAsString(
             new AuthController.LoginRequest() {{
                 setUsername("testuser");
-                setPassword("user123");
+                setPassword(encodedPassword);
             }}
         );
 

@@ -1,5 +1,7 @@
 package com.example.rocketpop.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class User {
     private int id = -1;
     private String firstName;
@@ -10,9 +12,13 @@ public class User {
     private String country;
     private String city;
     private int location;
+    @JsonProperty("username")
     private String userName;
     private String password;
     private String salt;  
+
+    // No-args constructor for Jackson
+    public User() {}
 
     public User(String userName, String password, String salt) {
         this.userName = userName;
@@ -44,7 +50,8 @@ public class User {
     public void setCountry(String country) { this.country = country; }
     public void setCity(String city) { this.city = city; }
     public void setLocation(int location) { this.location = location; }
-    public void setUserName(String userName) { this.userName = userName; }
+    public void setUsername(String userName) { this.userName = userName; }
     public void setPassword(String password) { this.password = password; }
     public void setSalt(String salt) { this.salt = salt; }
 }
+

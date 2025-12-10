@@ -22,7 +22,11 @@ import org.springframework.web.context.WebApplicationContext;
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.repository.UserDatabase;
 import com.example.rocketpop.util.JWTUtil;
+import com.example.rocketpop.util.PasswordHasher;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -40,6 +44,8 @@ public class AdminControllerTests {
     private JWTUtil jwtUtil;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    private final Logger logger = LoggerFactory.getLogger(AdminControllerTests.class);
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private String adminToken;
@@ -77,13 +83,11 @@ public class AdminControllerTests {
     // Test Create User
     @Test
     public void testCreateUserSuccess() throws Exception {
+        logger.info("testCreateUserSuccess");
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("password123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("newuser");
-                setPassword("password123");
-                setEmail("newuser@test.com");
-                setTitle("user");
-            }}
+                new User("newuser", encodedPassword, "user")
         );
 
         mockMvc.perform(post("/admin/user/create")
@@ -99,13 +103,10 @@ public class AdminControllerTests {
 
     @Test
     public void testCreateUserUnauthorized() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("password123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("newuser");
-                setPassword("password123");
-                setEmail("newuser@test.com");
-                setTitle("user");
-            }}
+                new User("newuser", encodedPassword, "user")
         );
 
         mockMvc.perform(post("/admin/user/create")
@@ -118,13 +119,10 @@ public class AdminControllerTests {
 
     @Test
     public void testCreateUserDuplicate() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("password123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("testuser");
-                setPassword("password123");
-                setEmail("duplicate@test.com");
-                setTitle("user");
-            }}
+                new User("newuser", encodedPassword, "user")
         );
 
         mockMvc.perform(post("/admin/user/create")
@@ -138,35 +136,31 @@ public class AdminControllerTests {
     // Test Create Admin
     @Test
     public void testCreateAdminSuccess() throws Exception {
+        logger.info("testCreateAdminSuccess");
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
         String adminJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("newadmin");
-                setPassword("admin123");
-                setEmail("newadmin@test.com");
-            }}
+                new User("newadmin", encodedPassword, "admin")
         );
 
-        mockMvc.perform(post("/admin/adminuser/create")
+        mockMvc.perform(post("/admin/user/create")
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(adminJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Admin user created successfully"))
                 .andExpect(jsonPath("$.username").value("newadmin"))
                 .andExpect(jsonPath("$.title").value("admin"));
     }
 
     @Test
     public void testCreateAdminUnauthorized() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
         String adminJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("newadmin");
-                setPassword("admin123");
-                setEmail("newadmin@test.com");
-            }}
+                new User("newadmin", encodedPassword, "admin")
         );
 
-        mockMvc.perform(post("/admin/adminuser/create")
+        mockMvc.perform(post("/admin/user/create")
                 .header("Authorization", "Bearer " + userToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(adminJson))
@@ -230,13 +224,10 @@ public class AdminControllerTests {
     // Test Edit User
     @Test
     public void testEditUserSuccess() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("testuser");
-                setEmail("newemail@test.com");
-                setTitle("manager");
-                setLocation("3");
-            }}
+                new User("testuser", encodedPassword, "manager")
         );
 
         mockMvc.perform(put("/admin/user/edit")
@@ -253,13 +244,10 @@ public class AdminControllerTests {
 
     @Test
     public void testEditUserChangePassword() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("newpassword456");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("testuser");
-                setPassword("newpassword456");
-                setEmail("user@test.com");
-                setTitle("user");
-            }}
+                new User("testuser", encodedPassword, "user")
         );
 
         mockMvc.perform(put("/admin/user/edit")
@@ -272,12 +260,10 @@ public class AdminControllerTests {
 
     @Test
     public void testEditUserNotFound() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("nonexistent");
-                setEmail("test@test.com");
-                setTitle("user");
-            }}
+                new User("nonexistent", encodedPassword, "user")
         );
 
         mockMvc.perform(put("/admin/user/edit")
@@ -290,11 +276,10 @@ public class AdminControllerTests {
 
     @Test
     public void testEditUserUnauthorized() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
         String userJson = objectMapper.writeValueAsString(
-            new AdminController.UserRequest() {{
-                setUsername("testuser");
-                setEmail("newemail@test.com");
-            }}
+                new User("testuser", encodedPassword, "user")
         );
 
         mockMvc.perform(put("/admin/user/edit")

@@ -3,6 +3,7 @@ package com.example.rocketpop.controller;
 import com.example.rocketpop.model.User;
 import com.example.rocketpop.repository.UserDatabase;
 import com.example.rocketpop.util.JWTUtil;
+import com.example.rocketpop.util.PasswordHasher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,6 @@ public class UserControllerTests {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private String userToken;
     private String adminToken;
 
@@ -46,13 +46,16 @@ public class UserControllerTests {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         
         // Create test users
-        User adminUser = new User("admin", passwordEncoder.encode("admin123"), "");
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("admin123");
+        User adminUser = new User("admin", encodedPassword, "");
         adminUser.setEmail("admin@test.com");
         adminUser.setTitle("admin");
         adminUser.setLocation(1);
         userDatabase.createUser(adminUser);
 
-        User testUser = new User("testuser", passwordEncoder.encode("user123"), "");
+        String encodedPassword2 = passwordHasher.rsaEncrypt("user123");
+        User testUser = new User("testuser", encodedPassword2, "");
         testUser.setEmail("user@test.com");
         testUser.setTitle("user");
         testUser.setLocation(2);
@@ -107,10 +110,13 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordSuccess() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
+        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword("user123");
-                setNewPassword("newpassword123");
+                setOldPassword(encodedPassword);
+                setNewPassword(encodedNewPassword);
             }}
         );
 
@@ -124,10 +130,13 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordWrongOldPassword() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("wrongpassword");
+        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword("wrongpassword");
-                setNewPassword("newpassword123");
+                setOldPassword(encodedPassword);
+                setNewPassword(encodedNewPassword);
             }}
         );
 
@@ -141,10 +150,13 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordWithoutToken() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
+        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword("user123");
-                setNewPassword("newpassword123");
+                setOldPassword(encodedPassword);
+                setNewPassword(encodedNewPassword);
             }}
         );
 
@@ -156,10 +168,13 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordWithInvalidToken() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
+        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword("user123");
-                setNewPassword("newpassword123");
+                setOldPassword(encodedPassword);
+                setNewPassword(encodedNewPassword);
             }}
         );
 
@@ -173,9 +188,11 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordEmptyNewPassword() throws Exception {
+        PasswordHasher passwordHasher = new PasswordHasher();
+        String encodedPassword = passwordHasher.rsaEncrypt("user123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword("user123");
+                setOldPassword(encodedPassword);
                 setNewPassword("");
             }}
         );

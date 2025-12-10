@@ -86,7 +86,7 @@ public class UserDatabaseTests {
         logger.info("testUpdateUser");
         var user = database.getUser("user1");
         assertNotNull(user, "User is null");
-        user.setUserName("user4");
+        user.setUsername("user4");
         assertTrue(database.updateUser(user), "User not updated");
 
         var user4 = database.getUser("user4");
