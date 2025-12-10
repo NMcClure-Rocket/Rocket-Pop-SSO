@@ -16,6 +16,7 @@ From the project root:
 
 ```bash
 docker compose up --build -d
+./scripts/init_db.sh
 ```
 
 - This will build and start **all services**:
