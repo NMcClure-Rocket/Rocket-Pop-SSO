@@ -2,9 +2,9 @@ name: Lint Code
 
 on:
   push:
-    branches: [ main, develop, travis ]
+    branches: [ main, dev, travis, nate, ethan, frederick ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 jobs:
   checkstyle:
