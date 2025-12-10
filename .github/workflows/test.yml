@@ -2,13 +2,17 @@ name: Run Tests
 
 on:
   push:
-    branches: [ main, develop, travis ]
+    branches: [ main, dev, travis, frederick, nate, ethan ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     
     steps:
     - uses: actions/checkout@v4

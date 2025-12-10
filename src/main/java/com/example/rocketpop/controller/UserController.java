@@ -1,5 +1,6 @@
 package com.example.rocketpop.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ public class UserController {
     private UserService userService;
 
 
+    @Autowired
     private final PasswordHasher passwordHasher = new PasswordHasher();
 
     @GetMapping("/info")
@@ -111,6 +113,29 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+
+    /** Gets all of the usernames of all users */
+    @GetMapping("/getusersnames")
+    public ResponseEntity<?> getUsernames() {
+        try {
+            // Return a JSON array of all users first name, last name, title
+            var users = userService.getAllUsers();
+            var response = new ArrayList<Map<String, String>>();
+            for (var user : users) {
+                var userMap = new HashMap<String, String>();
+                userMap.put("firstName", user.getFirstName());
+                userMap.put("lastName", user.getLastName());
+                userMap.put("title", user.getTitle());
+                response.add(userMap);
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
     
     // Inner class for password change request
     public static class PasswordChangeRequest {
@@ -133,4 +158,5 @@ public class UserController {
             this.newPassword = newPassword;
         }
     }
+    
 }

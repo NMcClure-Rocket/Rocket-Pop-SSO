@@ -25,6 +25,9 @@ import com.example.rocketpop.model.User;
 import com.example.rocketpop.service.UserService;
 import com.example.rocketpop.util.PasswordHasher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin(origins = "http://localhost:42067")
@@ -35,53 +38,60 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+    private final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
+    @Autowired
     private final PasswordHasher passwordHasher = new PasswordHasher();
 
     @PostMapping("/user/create")
     public ResponseEntity<?> createUser(
             @RequestHeader("Authorization") String token,
             @RequestBody User userRequest) {
-        try {
-            // Validate admin token
-            if (!userService.validateAdminToken(token)) {
+
+            logger.info("createUser called with username: {}", userRequest.getUsername());
+            try {
+                // Validate admin token
+                if (!userService.validateAdminToken(token)) {
+                    logger.error("Unauthorized access attempt to createUser - invalid token");
+                    Map<String, String> error = new HashMap<>();
+                    error.put("error", "Unauthorized - Admin access required");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                }
+
+                // Create new user with 'user' or 'manager' role
+                String salt = passwordHasher.getRandomSalt();
+                String passwordHash = passwordHasher.hashPassword(
+                        passwordHasher.rsaDecrypt(userRequest.getPassword()),
+                        salt
+                        );
+
+                userRequest.setPassword(passwordHash);
+                userRequest.setSalt(salt);
+
+                User newUser = userService.createUser(userRequest);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "User created successfully");
+                response.put("username", newUser.getUsername());
+                response.put("email", newUser.getEmail());
+                response.put("title", newUser.getTitle());
+                response.put("id", newUser.getId());
+                response.put("location", newUser.getLocation());
+
+                return ResponseEntity.ok(response);
+
+            } catch (RuntimeException e) {
+                logger.error("Error creating user", e);
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "Unauthorized - Admin access required");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                error.put("error", e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            } catch (Exception e) {
+                logger.error("Internal error creating user", e);
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Internal server error");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
             }
-            
-            // Create new user with 'user' or 'manager' role
-            String salt = passwordHasher.getRandomSalt();
-            String passwordHash = passwordHasher.hashPassword(
-                    passwordHasher.rsaDecrypt(userRequest.getPassword()),
-                    salt
-                    );
-
-            userRequest.setPassword(passwordHash);
-            userRequest.setSalt(salt);
-
-            User newUser = userService.createUser(userRequest);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "User created successfully");
-            response.put("username", newUser.getUsername());
-            response.put("email", newUser.getEmail());
-            response.put("title", newUser.getTitle());
-            response.put("id", newUser.getId());
-            response.put("location", newUser.getLocation());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Internal server error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
-    }
+            }
     
     @PostMapping("/adminuser/create")
     public ResponseEntity<?> createAdmin(
@@ -163,10 +173,12 @@ public class AdminController {
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
+            logger.error("RuntimeException in editUser: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
+            logger.error("Exception in editUser: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
             error.put("error", "Internal server error");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
