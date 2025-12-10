@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class UserService {
     
@@ -17,6 +20,8 @@ public class UserService {
     
     @Autowired
     private JWTUtil jwtUtil;
+
+    Logger logger = LoggerFactory.getLogger(UserService.class);
     
     //private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
@@ -29,6 +34,10 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("Invalid username or password");
         }
+
+        logger.info("user: {}", user);
+        logger.info("password: {}", password);
+        logger.info("user.getPassword(): {}", user.getPassword());
         
         if (!password.equals(user.getPassword())) {
             throw new RuntimeException("Invalid password");

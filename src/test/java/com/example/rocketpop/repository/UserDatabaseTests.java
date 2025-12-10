@@ -126,4 +126,15 @@ public class UserDatabaseTests {
         assertEquals(0, users.size());
     }
 
+    @Test
+    public void testGetUserSalt() {
+        // Existing user
+        String salt = database.getUserSalt("user1");
+        assertEquals("salt", salt);
+
+        // Non-existent user
+        String missingSalt = database.getUserSalt("nonexistent");
+        assertNull(missingSalt);
+    }
+
 }

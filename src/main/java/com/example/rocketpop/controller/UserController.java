@@ -32,6 +32,7 @@ public class UserController {
     private UserService userService;
 
 
+    @Autowired
     private final PasswordHasher passwordHasher = new PasswordHasher();
 
     @GetMapping("/info")

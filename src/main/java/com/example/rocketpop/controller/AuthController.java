@@ -28,7 +28,8 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    private final PasswordHasher passwordHasher = new PasswordHasher();
+    @Autowired
+    private PasswordHasher passwordHasher;
 
     @GetMapping("/ping")
     public ResponseEntity<?> ping() {

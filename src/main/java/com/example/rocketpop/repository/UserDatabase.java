@@ -201,14 +201,12 @@ public class UserDatabase implements Database {
 
     public String getUserSalt(String username) {
         LOGGER.info("getUserSalt called with username: {}", username);
-        Object[] args = {username};
-        List<User> users = jdbcTemplate.query(GETUSERSALTQUERY, args, new UserMapper());
-        if (users.size() == 0) {
+        try {
+            return jdbcTemplate.queryForObject(GETUSERSALTQUERY, new Object[]{username}, String.class);
+        } catch (DataAccessException e) {
             LOGGER.info("No user found with username: {}", username);
             return null;
         }
-        LOGGER.info("Found user: {}", users.get(0).getUsername());
-        return users.get(0).getSalt();
     }
 
 }

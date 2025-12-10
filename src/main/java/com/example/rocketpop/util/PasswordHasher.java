@@ -20,6 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+@Service
 public class PasswordHasher {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordHasher.class);
@@ -46,7 +50,7 @@ public class PasswordHasher {
             logger.error("Error hashing password", e);
         }
 
-        return hashedPassword.toString();
+        return Base64.getEncoder().encodeToString(hashedPassword);
     }
 
     public String getRandomSalt() {
@@ -71,7 +75,7 @@ public class PasswordHasher {
             byte[] privateKeyByte = decoder.decode(privateKeyString);
             privateKey = factory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyByte));
         } catch (Exception e) {
-            logger.error("Error decrypting password", e);
+            logger.error("Error getting private key {}", e);
         }
 
         // Decrypt ciphertext
@@ -82,7 +86,7 @@ public class PasswordHasher {
             byte[] decryptBytes = decryptCipher.doFinal(cipherBytes);
             plaintext = new String(decryptBytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            logger.error("Error decrypting password", e);
+            logger.error("Error decrypting password{}", e);
         }
 
         return plaintext;
@@ -94,12 +98,19 @@ public class PasswordHasher {
         String ciphertext = null;
         PublicKey publicKey = null;
 
+        logger.info("private key string: {}", privateKeyString);
+        logger.info("public key string: {}", publicKeyString);
         try {
+            if (publicKeyString == null) {
+                logger.error("publicKeyString is null! Check Spring property injection and bean instantiation.");
+                throw new IllegalStateException("publicKeyString is null");
+            }
+            logger.info("public key string: {}", publicKeyString);
             KeyFactory factory = KeyFactory.getInstance("RSA");
             byte[] publicKeyByte = decoder.decode(publicKeyString);
             publicKey = factory.generatePublic(new X509EncodedKeySpec(publicKeyByte));
         } catch (Exception e) {
-            logger.error("Error decrypting password", e);
+            logger.error("Error getting public key {}", e);
         }
 
         // Encrypt plaintext
@@ -110,7 +121,7 @@ public class PasswordHasher {
             byte[] encByte = encryptCipher.doFinal(secretByte);
             ciphertext = encoder.encodeToString(encByte);
         } catch (Exception e) {
-            logger.error("Error decrypting password", e);
+            logger.error("Error ecrypting password {}", e);
         }
 
         return ciphertext;

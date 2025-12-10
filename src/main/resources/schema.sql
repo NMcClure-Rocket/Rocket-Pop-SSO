@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 	city VARCHAR(50),
 	location INT,
     username VARCHAR(100) NOT NULL,
-    password VARCHAR(256) NOT NULL,
+    password VARCHAR(1000) NOT NULL,
     salt VARCHAR(128) NOT NULL
 );
 

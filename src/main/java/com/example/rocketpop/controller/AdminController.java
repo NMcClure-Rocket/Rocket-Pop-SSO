@@ -40,6 +40,7 @@ public class AdminController {
 
     private final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
+    @Autowired
     private final PasswordHasher passwordHasher = new PasswordHasher();
 
     @PostMapping("/user/create")
