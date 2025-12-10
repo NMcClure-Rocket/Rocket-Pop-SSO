@@ -1,3 +1,5 @@
+DELETE from users;
+
 -- Default Admin User
 INSERT INTO users (first_name, last_name, title, department, email, country, city, location, username, password, salt)
 SELECT 'Admin', 'User', 'admin', 1, 'admin@rocketpop.sso', 'USA', 'New York', 1, 'admin', 'e7ATEGAxGMnh8gl7XJI/HE8fwNpd8lfEyxLIHxK0rOa69LM//lWFD2GVyMRUOCcuJArQjXQ3CtcOgf4eTODOdA==', 'PSJ/Pmy6xGHD4ahMR/71+Q=='
