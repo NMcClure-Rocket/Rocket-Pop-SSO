@@ -7,4 +7,5 @@ then
     exit 1
 fi
 
+docker-compose build
 docker-compose up -d
