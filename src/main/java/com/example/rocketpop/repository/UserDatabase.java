@@ -35,6 +35,7 @@ public class UserDatabase implements Database {
     private static final String DELETEUSERBYUSERNAMEQUERY = "DELETE FROM users WHERE username = ?";
     private static final String DELETEALLUSERSQUERY = "DELETE FROM users";
     private static final String GETUSERSALTQUERY = "SELECT salt FROM users WHERE username = ?";
+    private static final String GETUSERNAMESQUERY = "SELECT username FROM users";
 
     @Override
     public User getUser(String username) {
@@ -209,4 +210,14 @@ public class UserDatabase implements Database {
         }
     }
 
+    /** Gets all of the usernames of all users */
+    public List<String> getUsernames() {
+        LOGGER.info("getUsernames called");
+        try {
+            return jdbcTemplate.queryForList(GETUSERNAMESQUERY, String.class);
+        } catch (DataAccessException e) {
+            LOGGER.info("No users found");
+            return null;
+        }
+    }
 }
