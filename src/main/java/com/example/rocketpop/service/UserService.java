@@ -57,9 +57,9 @@ public class UserService {
         String title = user.getTitle() != null ? user.getTitle() : "user";
         
         if ("admin".equalsIgnoreCase(title)) {
-            return jwtUtil.generateAdminToken(user.getUsername(), email);
+            return jwtUtil.generateAdminToken(user);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), email, title);
+            return jwtUtil.generateUserToken(user);
         }
     }
     

@@ -6,6 +6,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import com.example.rocketpop.model.User;
+
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -35,15 +37,18 @@ public class JWTUtil {
      * Generate token for regular users (with roles 'user' or 'manager')
      * These tokens can be used by external applications
      */
-    public String generateUserToken(String username, String email, String title) {
+    public String generateUserToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
-        claims.put("role", title);
-        claims.put("type", "user");
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("location", user.getLocation());
+        claims.put("department", user.getDepartment());
+        claims.put("title", user.getTitle());
         
         return Jwts.builder()
+                .setIssuer("Auth Service")
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getFirstName() + " " + user.getLastName())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getUserSecretKey(), SignatureAlgorithm.HS256)
@@ -54,19 +59,30 @@ public class JWTUtil {
      * Generate token for admin users
      * These tokens are for internal SSO website use only
      */
-    public String generateAdminToken(String username, String email) {
+    public String generateAdminToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("location", user.getLocation());
+        claims.put("department", user.getDepartment());
+        claims.put("title", user.getTitle());
         claims.put("role", "admin");
         claims.put("type", "admin");
         
         return Jwts.builder()
+        .setIssuer("Auth Service")
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getFirstName() + " " + user.getLastName())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getAdminSecretKey(), SignatureAlgorithm.HS256)
+                .signWith(getUserSecretKey(), SignatureAlgorithm.HS256)
                 .compact();
+                
+                // .setClaims(claims)
+                // .setIssuedAt(new Date(System.currentTimeMillis()))
+                // .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                // .signWith(getAdminSecretKey(), SignatureAlgorithm.HS256)
+                // .compact();
     }
     
     /**
