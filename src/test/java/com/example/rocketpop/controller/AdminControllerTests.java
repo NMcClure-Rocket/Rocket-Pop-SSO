@@ -342,17 +342,22 @@ public class AdminControllerTests {
     @Test
     public void testDeleteUserSuccess() throws Exception {
         logger.info("testDeleteUserSuccess called");
-        mockMvc.perform(post("/admin/user/delete/testuser")
+        User testUser = userDatabase.getUser("testuser");
+        int id = testUser.getId();
+        String path = "/admin/user/delete/" + id;
+        mockMvc.perform(post(path)
                 .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("User deleted successfully"))
-                .andExpect(jsonPath("$.username").value("testuser"));
+                .andExpect(jsonPath("$.message").value("User deleted successfully"));
     }
 
     @Test
     public void testDeleteUserNotFound() throws Exception {
         logger.info("testDeleteUserNotFound called");
-        mockMvc.perform(post("/admin/user/delete/nonexistent")
+        User testUser = userDatabase.getUser("asdfasdf");
+        int id = testUser.getId();
+        String path = "/admin/user/delete/" + id;
+        mockMvc.perform(post(path)
                 .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("User not found"));

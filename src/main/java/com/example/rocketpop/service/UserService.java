@@ -164,6 +164,11 @@ public class UserService {
         userDatabase.deleteUser(user.getId());
     }
     
+    public boolean deleteUserById(String userId) {
+        int id = Integer.parseInt(userId);
+        return userDatabase.deleteUser(id);
+    }
+    
     /**
      * Get all users
      */

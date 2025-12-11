@@ -196,14 +196,21 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
-            // Delete user by username (id is username in this context)
-            userService.deleteUser(id);
+            boolean success = userService.deleteUserById(id);
             
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "User deleted successfully");
-            response.put("username", id);
-            
-            return ResponseEntity.ok(response);
+            if (success) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User deleted successfully");
+                response.put("id", id);
+
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User not deleted");
+                response.put("id", id);
+                
+                return ResponseEntity.ok(response);
+            }
             
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
