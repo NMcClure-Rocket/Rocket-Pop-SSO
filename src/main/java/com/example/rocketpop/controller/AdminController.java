@@ -149,8 +149,11 @@ public class AdminController {
             }
             
             String salt = userService.getUserSalt(userRequest.getUsername());
+            userRequest.setSalt(salt);
             if (userRequest.getPassword() == null || userRequest.getPassword().isEmpty()) {
-                
+                logger.info("Password is null, getting from id");
+                userRequest.setPassword(userService.getPasswordFromId(userRequest.getId())); 
+                logger.info("Password: {}", userRequest.getPassword());
             } else {
                 String passwordHash = passwordHasher.hashPassword(
                         passwordHasher.rsaDecrypt(userRequest.getPassword()),
@@ -159,6 +162,7 @@ public class AdminController {
                 userRequest.setPassword(passwordHash);
             }
 
+            logger.info("Updating user with id: {}", userRequest.getId());
             User updatedUser = userService.updateUser(userRequest);
             
             Map<String, Object> response = new HashMap<>();
@@ -174,7 +178,7 @@ public class AdminController {
         } catch (RuntimeException e) {
             logger.error("RuntimeException in editUser: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
+            error.put("error updateing user", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
             logger.error("Exception in editUser: {}", e.getMessage(), e);
@@ -196,14 +200,21 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
             }
             
-            // Delete user by username (id is username in this context)
-            userService.deleteUser(id);
+            boolean success = userService.deleteUserById(id);
             
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "User deleted successfully");
-            response.put("username", id);
-            
-            return ResponseEntity.ok(response);
+            if (success) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User deleted successfully");
+                response.put("id", id);
+
+                return ResponseEntity.ok(response);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User not deleted");
+                response.put("id", id);
+                
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
             
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
@@ -255,11 +266,18 @@ public class AdminController {
             // Convert to response format
             List<Map<String, Object>> response = users.stream().map(user -> {
                 Map<String, Object> userMap = new HashMap<>();
-                userMap.put("id", user.getId());
-                userMap.put("username", user.getUsername());
-                userMap.put("email", user.getEmail());
+                // json the object
+                userMap.put("id", user.getId()); // json the object
+                userMap.put("firstName", user.getFirstName());
+                userMap.put("lastName", user.getLastName());
                 userMap.put("title", user.getTitle());
+                userMap.put("department", user.getDepartment());
+                userMap.put("email", user.getEmail());
+                userMap.put("country", user.getCountry());
+                userMap.put("city", user.getCity());
                 userMap.put("location", user.getLocation());
+                userMap.put("username", user.getUsername());
+
                 return userMap;
             }).collect(Collectors.toList());
             

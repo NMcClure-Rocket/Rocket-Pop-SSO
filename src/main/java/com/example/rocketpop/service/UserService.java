@@ -164,6 +164,11 @@ public class UserService {
         userDatabase.deleteUser(user.getId());
     }
     
+    public boolean deleteUserById(String userId) {
+        int id = Integer.parseInt(userId);
+        return userDatabase.deleteUser(id);
+    }
+    
     /**
      * Get all users
      */
@@ -208,6 +213,15 @@ public class UserService {
      */
     public String getUserSalt(String username) {
         return userDatabase.getUserSalt(username);
+    }
+
+    /** Gets password from user id */
+    public String getPasswordFromId(int id) {
+        User user = userDatabase.getUserById(String.valueOf(id));
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user.getPassword();
     }
 
 }

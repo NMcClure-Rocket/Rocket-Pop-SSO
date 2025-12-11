@@ -15,6 +15,7 @@ services:
       - "3306:3306"
     volumes:
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -42,3 +43,5 @@ services:
       - "42067:42067"
     depends_on:
       - backend
+volumes:
+  mysql_data:

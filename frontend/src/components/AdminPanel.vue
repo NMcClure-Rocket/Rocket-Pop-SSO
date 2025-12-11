@@ -296,6 +296,7 @@
       </div>
       <div v-show="expandedSections.editUser" class="card-content">
         <form @submit.prevent="handleEditUser">
+  <input type="hidden" v-model="editForm.id" />
           <div class="form-row">
             <div class="form-group">
               <label for="editFirstName">First Name</label>
@@ -616,6 +617,7 @@ const handleCreateAdmin = async () => {
 
 const selectUserForEdit = (user) => {
   editForm.value = {
+  id: user.id,
     firstName: user.firstName || user.first_name || '',
     lastName: user.lastName || user.last_name || '',
     username: user.username,
@@ -648,6 +650,7 @@ const handleEditUser = async () => {
 
   try {
     const userData = {
+        id: editForm.value.id,
       firstName: editForm.value.firstName,
       lastName: editForm.value.lastName,
       username: editForm.value.username,
@@ -658,13 +661,16 @@ const handleEditUser = async () => {
       city: editForm.value.city,
       location: editForm.value.location
     }
+    console.log("userData",userData)
     
     // Only encrypt password if provided
     if (editForm.value.password) {
+      console.log("edit form has password")
       const encryptedData = encryptPassword(editForm.value.username, editForm.value.password)
       userData.password = encryptedData.password
     }
     
+    console.log("sending update")
     const response = await adminAPI.editUser(userData)
     editSuccess.value = response.message || 'User updated successfully'
     loadUsers()
