@@ -36,6 +36,7 @@ public class UserDatabase implements Database {
     private static final String DELETEALLUSERSQUERY = "DELETE FROM users";
     private static final String GETUSERSALTQUERY = "SELECT salt FROM users WHERE username = ?";
     private static final String GETUSERNAMESQUERY = "SELECT username FROM users";
+    private static final String GETUSERBYIDQUERY = "SELECT * FROM users WHERE id = ?";
 
     @Override
     public User getUser(String username) {
@@ -220,4 +221,18 @@ public class UserDatabase implements Database {
             return null;
         }
     }
+
+    public User getUserById(String id) {
+        LOGGER.info("getUserById called with id: {}", id);
+        Object[] args = {id};
+        List<User> users = jdbcTemplate.query(GETUSERBYIDQUERY, args, new UserMapper());
+
+        if (users.size() == 0) {
+            LOGGER.info("No user found with id: {}", id);
+            return null;
+        }
+        LOGGER.info("Found user: {}", users.get(0));
+        return users.get(0);
+    }
+
 }

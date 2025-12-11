@@ -2,7 +2,7 @@ name: Lint Code
 
 on:
   push:
-    branches: [ main, dev, travis, nate, ethan, frederick ]
+    branches: [ main, dev, travis, nate, ethan, frederick, fix_test ]
   pull_request:
     branches: [ main, dev ]
 

@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = "http://localhost:42067")
 public class AdminController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
