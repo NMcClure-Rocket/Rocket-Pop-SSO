@@ -149,8 +149,11 @@ public class AdminController {
             }
             
             String salt = userService.getUserSalt(userRequest.getUsername());
+            userRequest.setSalt(salt);
             if (userRequest.getPassword() == null || userRequest.getPassword().isEmpty()) {
-                
+                logger.info("Password is null, getting from id");
+                userRequest.setPassword(userService.getPasswordFromId(userRequest.getId())); 
+                logger.info("Password: {}", userRequest.getPassword());
             } else {
                 String passwordHash = passwordHasher.hashPassword(
                         passwordHasher.rsaDecrypt(userRequest.getPassword()),
@@ -159,6 +162,7 @@ public class AdminController {
                 userRequest.setPassword(passwordHash);
             }
 
+            logger.info("Updating user with id: {}", userRequest.getId());
             User updatedUser = userService.updateUser(userRequest);
             
             Map<String, Object> response = new HashMap<>();
@@ -174,7 +178,7 @@ public class AdminController {
         } catch (RuntimeException e) {
             logger.error("RuntimeException in editUser: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
+            error.put("error updateing user", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
             logger.error("Exception in editUser: {}", e.getMessage(), e);

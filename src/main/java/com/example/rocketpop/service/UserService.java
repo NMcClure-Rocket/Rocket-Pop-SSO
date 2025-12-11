@@ -215,4 +215,13 @@ public class UserService {
         return userDatabase.getUserSalt(username);
     }
 
+    /** Gets password from user id */
+    public String getPasswordFromId(int id) {
+        User user = userDatabase.getUserById(String.valueOf(id));
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user.getPassword();
+    }
+
 }

@@ -354,9 +354,7 @@ public class AdminControllerTests {
     @Test
     public void testDeleteUserNotFound() throws Exception {
         logger.info("testDeleteUserNotFound called");
-        User testUser = userDatabase.getUser("asdfasdf");
-        int id = testUser.getId();
-        String path = "/admin/user/delete/" + id;
+        String path = "/admin/user/delete/" + 34;
         mockMvc.perform(post(path)
                 .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isBadRequest())
