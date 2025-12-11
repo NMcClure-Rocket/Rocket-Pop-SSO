@@ -1,36 +1,44 @@
 package com.example.rocketpop.util;
 
+import org.json.JSONObject;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import com.example.rocketpop.model.User;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 public class JWTUtil {
+
+    
+    private static final Logger logger = LoggerFactory.getLogger(JWTUtil.class);
     
     // Secret key for user tokens (can be used with external apps)
     private static final String USER_SECRET = "RockertSoftwareRocks2025ThisIsNotSecureEnough";
     
     // Different secret for admin tokens (internal use only)
-    private static final String ADMIN_SECRET = "RocketSSOAdminSecretKey2025InternalUseOnly!!";
+    private static final String ADMIN_SECRET = "RocketSSOAdminSecretKey2025InternalUseOnlygibberishasdfasdfasdf";
     
     private static final long EXPIRATION_TIME = 86400000; // 24 hours
     
-    private SecretKey getUserSecretKey() {
-        return Keys.hmacShaKeyFor(USER_SECRET.getBytes(StandardCharsets.UTF_8));
+
+    public SecretKey getAdminSecretKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(ADMIN_SECRET));
     }
     
-    private SecretKey getAdminSecretKey() {
-        return Keys.hmacShaKeyFor(ADMIN_SECRET.getBytes(StandardCharsets.UTF_8));
+    public SecretKey getUserSecretKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(USER_SECRET));
     }
     
     /**
@@ -38,21 +46,36 @@ public class JWTUtil {
      * These tokens can be used by external applications
      */
     public String generateUserToken(User user) {
+
+        JSONObject userObject = new JSONObject();
+        userObject.put("id", user.getId());
+        userObject.put("first_Name", user.getFirstName());
+        userObject.put("last_Name", user.getLastName());
+        userObject.put("location", user.getLocation());
+        userObject.put("department", user.getDepartment());
+        userObject.put("title", user.getTitle());
+
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
         Map<String, Object> claims = new HashMap<>();
-        claims.put("firstName", user.getFirstName());
-        claims.put("lastName", user.getLastName());
-        claims.put("location", user.getLocation());
-        claims.put("department", user.getDepartment());
+        claims.put("id", user.getId());
+        claims.put("first_name", user.getFirstName());
+        claims.put("last_name", user.getLastName());
+        claims.put("location", Integer.toString(user.getLocation()));
+        claims.put("department", Integer.toString(user.getDepartment()));
         claims.put("title", user.getTitle());
+
+        SecretKey key = getUserSecretKey();
+
         
         return Jwts.builder()
-                .setIssuer("Auth Service")
-                .setClaims(claims)
-                .setSubject(user.getFirstName() + " " + user.getLastName())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getUserSecretKey(), SignatureAlgorithm.HS256)
-                .compact();
+            .issuer("Auth Service")
+            .claims(claims)
+            .subject(user.getFirstName() + " " + user.getLastName())
+            .issuedAt(now)
+            .expiration(expiration)
+            .signWith(key)
+            .compact();
     }
     
     /**
@@ -60,36 +83,45 @@ public class JWTUtil {
      * These tokens are for internal SSO website use only
      */
     public String generateAdminToken(User user) {
+
+        JSONObject userObject = new JSONObject();
+        userObject.put("id", user.getId());
+        userObject.put("firstName", user.getFirstName());
+        userObject.put("lastName", user.getLastName());
+        userObject.put("location", user.getLocation());
+        userObject.put("department", user.getDepartment());
+        userObject.put("title", user.getTitle());
+        userObject.put("role", "admin");
+        userObject.put("type", "admin");
+
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
         Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
         claims.put("location", user.getLocation());
         claims.put("department", user.getDepartment());
         claims.put("title", user.getTitle());
-        claims.put("role", "admin");
-        claims.put("type", "admin");
+
+        SecretKey key = getAdminSecretKey();
         
         return Jwts.builder()
-        .setIssuer("Auth Service")
-                .setClaims(claims)
-                .setSubject(user.getFirstName() + " " + user.getLastName())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(getUserSecretKey(), SignatureAlgorithm.HS256)
-                .compact();
-                
-                // .setClaims(claims)
-                // .setIssuedAt(new Date(System.currentTimeMillis()))
-                // .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                // .signWith(getAdminSecretKey(), SignatureAlgorithm.HS256)
-                // .compact();
+            .issuer("Auth Service")
+            .claims(claims)
+            .subject(user.getFirstName() + " " + user.getLastName())
+            .issuedAt(now)
+            .expiration(expiration)
+            .signWith(key)
+            .compact();
     }
     
     /**
-     * Extract username from token
+     * Extract id from token
      */
-    public String extractUsername(String token, boolean isAdmin) {
-        return extractClaims(token, isAdmin).getSubject();
+    public String extractId(String token, boolean isAdmin) {
+        Object id = extractClaims(token, isAdmin).get("id");
+        return id != null ? id.toString() : null;
     }
     
     /**
@@ -111,11 +143,15 @@ public class JWTUtil {
      */
     private Claims extractClaims(String token, boolean isAdmin) {
         SecretKey key = isAdmin ? getAdminSecretKey() : getUserSecretKey();
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        logger.info("extractClaims called with token: {}", token);
+        logger.info("key: {}", key);
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
+        logger.info("claims: {}", claims);
+        return claims;
     }
     
     /**
@@ -126,6 +162,7 @@ public class JWTUtil {
             Claims claims = extractClaims(token, isAdmin);
             return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
+            logger.error("Error validating token", e);
             return false;
         }
     }
@@ -136,8 +173,9 @@ public class JWTUtil {
     public boolean isAdminToken(String token) {
         try {
             Claims claims = extractClaims(token, true);
-            return "admin".equals(claims.get("type"));
+            return "admin".equals(claims.get("title"));
         } catch (Exception e) {
+            logger.error("Error checking if token is admin token {}", e);
             return false;
         }
     }
@@ -146,7 +184,9 @@ public class JWTUtil {
      * Clean Bearer prefix from token
      */
     public String cleanToken(String token) {
+        logger.info("cleanToken called with token: {}", token);
         if (token != null && token.startsWith("Bearer ")) {
+            logger.info("Bearer prefix found, removing", token.substring(7));
             return token.substring(7);
         }
         return token;
