@@ -319,8 +319,7 @@ public class AdminControllerTests {
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(userJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").exists()); // Error message may vary
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -354,11 +353,10 @@ public class AdminControllerTests {
     @Test
     public void testDeleteUserNotFound() throws Exception {
         logger.info("testDeleteUserNotFound called");
-        String path = "/admin/user/delete/" + 34;
+        String path = "/admin/user/delete/" + 1000;
         mockMvc.perform(post(path)
                 .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("User not found"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test

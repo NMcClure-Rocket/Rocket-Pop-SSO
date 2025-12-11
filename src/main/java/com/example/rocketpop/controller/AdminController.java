@@ -213,7 +213,7 @@ public class AdminController {
                 response.put("message", "User not deleted");
                 response.put("id", id);
                 
-                return ResponseEntity.ok(response);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
             
         } catch (RuntimeException e) {
