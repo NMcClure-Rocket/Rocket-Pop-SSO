@@ -20,9 +20,13 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @SpringBootTest
 @ActiveProfiles("test")
 public class UserControllerTests {
+    private static final Logger logger = LoggerFactory.getLogger(UserControllerTests.class);
 
     private MockMvc mockMvc;
 
@@ -65,9 +69,12 @@ public class UserControllerTests {
         testUser.setLocation(2);
         userDatabase.createUser(testUser);
 
+        User adminUserFromDB = userDatabase.getUser(adminUser.getUsername());
+        User testUserFromDB = userDatabase.getUser(testUser.getUsername());
+
         // Generate tokens
-        adminToken = jwtUtil.generateAdminToken("admin", "admin@test.com");
-        userToken = jwtUtil.generateUserToken("testuser", "user@test.com", "user");
+        adminToken = jwtUtil.generateAdminToken(adminUserFromDB);
+        userToken = jwtUtil.generateUserToken(testUserFromDB);
     }
 
     @AfterEach
@@ -77,6 +84,7 @@ public class UserControllerTests {
 
     @Test
     public void testGetSelfWithValidToken() throws Exception {
+        logger.info("testGetSelfWithValidToken called");
         mockMvc.perform(get("/user/info")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
@@ -100,6 +108,7 @@ public class UserControllerTests {
 
     @Test
     public void testGetSelfWithoutToken() throws Exception {
+        logger.info("testGetSelfWithoutToken called");
         mockMvc.perform(get("/user/info"))
                 .andExpect(status().isBadRequest());
     }
@@ -114,12 +123,13 @@ public class UserControllerTests {
 
     @Test
     public void testChangePasswordSuccess() throws Exception {
-        String encodedPassword = passwordHasher.rsaEncrypt("user123");
-        String encodedNewPassword = passwordHasher.rsaEncrypt("newpassword123");
+        logger.info("testChangePasswordSuccess called");
+        String oldPassword = passwordHasher.rsaEncrypt("user123");
+        String newPassword = passwordHasher.rsaEncrypt("newpassword123");
         String passwordChangeJson = objectMapper.writeValueAsString(
             new UserController.PasswordChangeRequest() {{
-                setOldPassword(encodedPassword);
-                setNewPassword(encodedNewPassword);
+                setOldPassword(oldPassword);
+                setNewPassword(newPassword);
             }}
         );
 

@@ -53,13 +53,13 @@ public class UserService {
         */
         
         // Generate appropriate token based on title
-        String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
         String title = user.getTitle() != null ? user.getTitle() : "user";
         
+        logger.info("title: {}", title);
         if ("admin".equalsIgnoreCase(title)) {
-            return jwtUtil.generateAdminToken(user.getUsername(), email);
+            return jwtUtil.generateAdminToken(user);
         } else {
-            return jwtUtil.generateUserToken(user.getUsername(), email, title);
+            return jwtUtil.generateUserToken(user);
         }
     }
     
@@ -73,14 +73,27 @@ public class UserService {
         }
         return user;
     }
+
+    /**
+     * Get user by id
+     */
+    public User getUserById(String id) {
+        User user = userDatabase.getUserById(id);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user;
+    }
     
     /**
      * Get user info from token
      */
     public User getUserFromToken(String token) {
+        logger.info("getUserFromToken called with token: {}", token);
         boolean isAdmin = jwtUtil.isAdminToken(token);
-        String username = jwtUtil.extractUsername(token, isAdmin);
-        return getUserByUsername(username);
+        String id = jwtUtil.extractId(token, isAdmin);
+        logger.info("userid: {}", id);
+        return getUserById(id);
     }
     
     /**
