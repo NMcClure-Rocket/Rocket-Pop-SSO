@@ -372,4 +372,49 @@ public class AdminControllerTests {
         mockMvc.perform(post("/admin/user/delete/testuser"))
                 .andExpect(status().isBadRequest());
     }
+
+    // Additional edge case tests for better coverage
+    @Test
+    public void testGetAllUsersWithoutToken() throws Exception {
+        logger.info("testGetAllUsersWithoutToken called");
+        mockMvc.perform(get("/admin/user/getall"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetAllUsersEmptyToken() throws Exception {
+        logger.info("testGetAllUsersEmptyToken called");
+        mockMvc.perform(get("/admin/user/getall")
+                .header("Authorization", ""))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetUserWithoutToken() throws Exception {
+        logger.info("testGetUserWithoutToken called");
+        mockMvc.perform(get("/admin/user/get/testuser"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetUserEmptyToken() throws Exception {
+        logger.info("testGetUserEmptyToken called");
+        mockMvc.perform(get("/admin/user/get/testuser")
+                .header("Authorization", ""))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testSearchUsersEmptyResults() throws Exception {
+        logger.info("testSearchUsersEmptyResults called");
+        mockMvc.perform(get("/admin/user/getall")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("username", "nonexistentuser"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
 }
