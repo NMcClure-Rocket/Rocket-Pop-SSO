@@ -262,11 +262,18 @@ public class AdminController {
             // Convert to response format
             List<Map<String, Object>> response = users.stream().map(user -> {
                 Map<String, Object> userMap = new HashMap<>();
-                userMap.put("id", user.getId());
-                userMap.put("username", user.getUsername());
-                userMap.put("email", user.getEmail());
+                // json the object
+                userMap.put("id", user.getId()); // json the object
+                userMap.put("firstName", user.getFirstName());
+                userMap.put("lastName", user.getLastName());
                 userMap.put("title", user.getTitle());
+                userMap.put("department", user.getDepartment());
+                userMap.put("email", user.getEmail());
+                userMap.put("country", user.getCountry());
+                userMap.put("city", user.getCity());
                 userMap.put("location", user.getLocation());
+                userMap.put("username", user.getUsername());
+
                 return userMap;
             }).collect(Collectors.toList());
             
