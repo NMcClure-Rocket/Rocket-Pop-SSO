@@ -53,9 +53,9 @@ public class UserService {
         */
         
         // Generate appropriate token based on title
-        String email = user.getEmail() != null ? user.getEmail() : username + "@rocketpop.com";
         String title = user.getTitle() != null ? user.getTitle() : "user";
         
+        logger.info("title: {}", title);
         if ("admin".equalsIgnoreCase(title)) {
             return jwtUtil.generateAdminToken(user);
         } else {

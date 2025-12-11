@@ -49,8 +49,8 @@ public class JWTUtil {
 
         JSONObject userObject = new JSONObject();
         userObject.put("id", user.getId());
-        userObject.put("firstName", user.getFirstName());
-        userObject.put("lastName", user.getLastName());
+        userObject.put("first_Name", user.getFirstName());
+        userObject.put("last_Name", user.getLastName());
         userObject.put("location", user.getLocation());
         userObject.put("department", user.getDepartment());
         userObject.put("title", user.getTitle());
@@ -59,10 +59,10 @@ public class JWTUtil {
         Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", user.getId());
-        claims.put("firstName", user.getFirstName());
-        claims.put("lastName", user.getLastName());
-        claims.put("location", user.getLocation());
-        claims.put("department", user.getDepartment());
+        claims.put("first_name", user.getFirstName());
+        claims.put("last_name", user.getLastName());
+        claims.put("location", Integer.toString(user.getLocation()));
+        claims.put("department", Integer.toString(user.getDepartment()));
         claims.put("title", user.getTitle());
 
         SecretKey key = getUserSecretKey();
