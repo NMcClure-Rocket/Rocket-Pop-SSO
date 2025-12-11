@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -75,9 +76,12 @@ public class AdminControllerTests {
         testUser.setLocation(2);
         userDatabase.createUser(testUser);
 
+        User adminUserFromDB = userDatabase.getUser(adminUser.getUsername());
+        User testUserFromDB = userDatabase.getUser(testUser.getUsername());
+
         // Generate tokens
-        adminToken = jwtUtil.generateAdminToken("admin", "admin@test.com");
-        userToken = jwtUtil.generateUserToken("testuser", "user@test.com", "user");
+        adminToken = jwtUtil.generateAdminToken(adminUserFromDB);
+        userToken = jwtUtil.generateUserToken(testUserFromDB);
     }
 
     @AfterEach
@@ -372,4 +376,5 @@ public class AdminControllerTests {
         mockMvc.perform(post("/admin/user/delete/testuser"))
                 .andExpect(status().isBadRequest());
     }
+
 }

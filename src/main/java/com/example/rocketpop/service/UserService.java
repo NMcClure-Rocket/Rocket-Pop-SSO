@@ -73,14 +73,27 @@ public class UserService {
         }
         return user;
     }
+
+    /**
+     * Get user by id
+     */
+    public User getUserById(String id) {
+        User user = userDatabase.getUserById(id);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user;
+    }
     
     /**
      * Get user info from token
      */
     public User getUserFromToken(String token) {
+        logger.info("getUserFromToken called with token: {}", token);
         boolean isAdmin = jwtUtil.isAdminToken(token);
-        String username = jwtUtil.extractUsername(token, isAdmin);
-        return getUserByUsername(username);
+        String id = jwtUtil.extractId(token, isAdmin);
+        logger.info("userid: {}", id);
+        return getUserById(id);
     }
     
     /**
