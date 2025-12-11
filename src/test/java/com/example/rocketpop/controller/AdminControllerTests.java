@@ -75,9 +75,9 @@ public class AdminControllerTests {
         testUser.setLocation(2);
         userDatabase.createUser(testUser);
 
-        // Generate tokens
-        adminToken = jwtUtil.generateAdminToken("admin", "admin@test.com");
-        userToken = jwtUtil.generateUserToken("testuser", "user@test.com", "user");
+        // Generate tokens - pass User objects to token generation methods
+        adminToken = jwtUtil.generateAdminToken(adminUser);
+        userToken = jwtUtil.generateUserToken(testUser);
     }
 
     @AfterEach
