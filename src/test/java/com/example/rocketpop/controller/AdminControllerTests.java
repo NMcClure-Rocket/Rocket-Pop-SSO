@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -76,12 +75,9 @@ public class AdminControllerTests {
         testUser.setLocation(2);
         userDatabase.createUser(testUser);
 
-        User adminUserFromDB = userDatabase.getUser(adminUser.getUsername());
-        User testUserFromDB = userDatabase.getUser(testUser.getUsername());
-
-        // Generate tokens
-        adminToken = jwtUtil.generateAdminToken(adminUserFromDB);
-        userToken = jwtUtil.generateUserToken(testUserFromDB);
+        // Generate tokens - pass User objects to token generation methods
+        adminToken = jwtUtil.generateAdminToken(adminUser);
+        userToken = jwtUtil.generateUserToken(testUser);
     }
 
     @AfterEach
@@ -377,4 +373,48 @@ public class AdminControllerTests {
                 .andExpect(status().isBadRequest());
     }
 
+    // Additional edge case tests for better coverage
+    @Test
+    public void testGetAllUsersWithoutToken() throws Exception {
+        logger.info("testGetAllUsersWithoutToken called");
+        mockMvc.perform(get("/admin/user/getall"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetAllUsersEmptyToken() throws Exception {
+        logger.info("testGetAllUsersEmptyToken called");
+        mockMvc.perform(get("/admin/user/getall")
+                .header("Authorization", ""))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetUserWithoutToken() throws Exception {
+        logger.info("testGetUserWithoutToken called");
+        mockMvc.perform(get("/admin/user/get/testuser"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testGetUserEmptyToken() throws Exception {
+        logger.info("testGetUserEmptyToken called");
+        mockMvc.perform(get("/admin/user/get/testuser")
+                .header("Authorization", ""))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("No authorization token provided"));
+    }
+
+    @Test
+    public void testSearchUsersEmptyResults() throws Exception {
+        logger.info("testSearchUsersEmptyResults called");
+        mockMvc.perform(get("/admin/user/getall")
+                .header("Authorization", "Bearer " + adminToken)
+                .param("username", "nonexistentuser"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
 }

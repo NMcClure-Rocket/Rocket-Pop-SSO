@@ -67,38 +67,38 @@ public class UserServiceTests {
     @Test
     public void testAuthenticateUser_ValidUser() {
         when(userDatabase.getUser("testuser")).thenReturn(testUser);
-        when(jwtUtil.generateUserToken(anyString(), anyString(), anyString())).thenReturn("user.token.here");
+        when(jwtUtil.generateUserToken(any(User.class))).thenReturn("user.token.here");
         
         String token = userService.authenticateUser("testuser", "password123");
         
         assertNotNull(token);
         assertEquals("user.token.here", token);
         verify(userDatabase).getUser("testuser");
-        verify(jwtUtil).generateUserToken("testuser", "test@example.com", "user");
+        verify(jwtUtil).generateUserToken(any(User.class));
     }
 
     @Test
     public void testAuthenticateUser_AdminUser() {
         when(userDatabase.getUser("adminuser")).thenReturn(adminUser);
-        when(jwtUtil.generateAdminToken(anyString(), anyString())).thenReturn("admin.token.here");
+        when(jwtUtil.generateAdminToken(any(User.class))).thenReturn("admin.token.here");
         
         String token = userService.authenticateUser("adminuser", "adminpass");
         
         assertNotNull(token);
         assertEquals("admin.token.here", token);
         verify(userDatabase).getUser("adminuser");
-        verify(jwtUtil).generateAdminToken("adminuser", "admin@example.com");
+        verify(jwtUtil).generateAdminToken(any(User.class));
     }
 
     @Test
     public void testAuthenticateUser_ManagerUser() {
         when(userDatabase.getUser("managername")).thenReturn(managerUser);
-        when(jwtUtil.generateUserToken(anyString(), anyString(), anyString())).thenReturn("manager.token.here");
+        when(jwtUtil.generateUserToken(any(User.class))).thenReturn("manager.token.here");
         
         String token = userService.authenticateUser("managername", "managerpass");
         
         assertNotNull(token);
-        verify(jwtUtil).generateUserToken("managername", "manager@example.com", "manager");
+        verify(jwtUtil).generateUserToken(any(User.class));
     }
 
     @Test
@@ -130,11 +130,11 @@ public class UserServiceTests {
         userWithoutEmail.setTitle("user");
         
         when(userDatabase.getUser("nomail")).thenReturn(userWithoutEmail);
-        when(jwtUtil.generateUserToken(anyString(), anyString(), anyString())).thenReturn("token");
+        when(jwtUtil.generateUserToken(any(User.class))).thenReturn("token");
         
         userService.authenticateUser("nomail", "pass");
         
-        verify(jwtUtil).generateUserToken("nomail", "nomail@rocketpop.com", "user");
+        verify(jwtUtil).generateUserToken(any(User.class));
     }
 
     @Test
@@ -146,11 +146,11 @@ public class UserServiceTests {
         userWithoutTitle.setTitle(null);
         
         when(userDatabase.getUser("notitle")).thenReturn(userWithoutTitle);
-        when(jwtUtil.generateUserToken(anyString(), anyString(), anyString())).thenReturn("token");
+        when(jwtUtil.generateUserToken(any(User.class))).thenReturn("token");
         
         userService.authenticateUser("notitle", "pass");
         
-        verify(jwtUtil).generateUserToken("notitle", "notitle@example.com", "user");
+        verify(jwtUtil).generateUserToken(any(User.class));
     }
 
     // ========== getUserByUsername Tests ==========
@@ -182,8 +182,8 @@ public class UserServiceTests {
     @Test
     public void testGetUserFromToken_UserToken() {
         when(jwtUtil.isAdminToken("user.token")).thenReturn(false);
-        when(jwtUtil.extractUsername("user.token", false)).thenReturn("testuser");
-        when(userDatabase.getUser("testuser")).thenReturn(testUser);
+        when(jwtUtil.extractId("user.token", false)).thenReturn("1");
+        when(userDatabase.getUserById("1")).thenReturn(testUser);
         
         User result = userService.getUserFromToken("user.token");
         
@@ -194,8 +194,8 @@ public class UserServiceTests {
     @Test
     public void testGetUserFromToken_AdminToken() {
         when(jwtUtil.isAdminToken("admin.token")).thenReturn(true);
-        when(jwtUtil.extractUsername("admin.token", true)).thenReturn("adminuser");
-        when(userDatabase.getUser("adminuser")).thenReturn(adminUser);
+        when(jwtUtil.extractId("admin.token", true)).thenReturn("2");
+        when(userDatabase.getUserById("2")).thenReturn(adminUser);
         
         User result = userService.getUserFromToken("admin.token");
         

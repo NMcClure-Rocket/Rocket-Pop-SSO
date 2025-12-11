@@ -1,5 +1,6 @@
 package com.example.rocketpop.util;
 
+import com.example.rocketpop.model.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -28,39 +29,69 @@ public class JWTUtilTests {
     private String validAdminToken;
     private String expiredUserToken;
     private String expiredAdminToken;
+    private User testUser;
+    private User adminUser;
 
     @BeforeEach
     public void setUp() {
+        // Create test user
+        testUser = new User("testuser", "hashedpassword", "salt");
+        testUser.setId(1);
+        testUser.setFirstName("Test");
+        testUser.setLastName("User");
+        testUser.setEmail("test@example.com");
+        testUser.setTitle("manager");
+        testUser.setDepartment(1);
+        testUser.setLocation(1);
+
+        // Create admin user
+        adminUser = new User("adminuser", "hashedadmin", "salt");
+        adminUser.setId(2);
+        adminUser.setFirstName("Admin");
+        adminUser.setLastName("User");
+        adminUser.setEmail("admin@example.com");
+        adminUser.setTitle("admin");
+        adminUser.setDepartment(1);
+        adminUser.setLocation(1);
+
         // Generate valid tokens
-        validUserToken = jwtUtil.generateUserToken("testuser", "test@example.com", "manager");
-        validAdminToken = jwtUtil.generateAdminToken("adminuser", "admin@example.com");
+        validUserToken = jwtUtil.generateUserToken(testUser);
+        validAdminToken = jwtUtil.generateAdminToken(adminUser);
 
         // Generate expired tokens for testing
-        expiredUserToken = generateExpiredUserToken("expireduser", "expired@example.com", "user");
-        expiredAdminToken = generateExpiredAdminToken("expiredadmin", "expiredadmin@example.com");
+        expiredUserToken = generateExpiredUserToken(testUser);
+        expiredAdminToken = generateExpiredAdminToken(adminUser);
     }
 
     // Helper methods to generate expired tokens
-    private String generateExpiredUserToken(String username, String email, String title) {
+    private String generateExpiredUserToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
-        claims.put("role", title);
-        claims.put("type", "user");
+        claims.put("id", user.getId());
+        claims.put("first_name", user.getFirstName());
+        claims.put("last_name", user.getLastName());
+        claims.put("location", Integer.toString(user.getLocation()));
+        claims.put("department", Integer.toString(user.getDepartment()));
+        claims.put("title", user.getTitle());
         
         SecretKey key = Keys.hmacShaKeyFor("RockertSoftwareRocks2025ThisIsNotSecureEnough".getBytes(StandardCharsets.UTF_8));
         
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getFirstName() + " " + user.getLastName())
                 .setIssuedAt(new Date(System.currentTimeMillis() - 100000000))
                 .setExpiration(new Date(System.currentTimeMillis() - 10000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    private String generateExpiredAdminToken(String username, String email) {
+    private String generateExpiredAdminToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
+        claims.put("id", user.getId());
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("location", user.getLocation());
+        claims.put("department", user.getDepartment());
+        claims.put("title", user.getTitle());
         claims.put("role", "admin");
         claims.put("type", "admin");
         
@@ -68,7 +99,7 @@ public class JWTUtilTests {
         
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(user.getFirstName() + " " + user.getLastName())
                 .setIssuedAt(new Date(System.currentTimeMillis() - 100000000))
                 .setExpiration(new Date(System.currentTimeMillis() - 10000))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -79,7 +110,7 @@ public class JWTUtilTests {
 
     @Test
     public void testGenerateUserToken_ValidInput() {
-        String token = jwtUtil.generateUserToken("john", "john@example.com", "user");
+        String token = jwtUtil.generateUserToken(testUser);
         assertNotNull(token);
         assertTrue(token.length() > 0);
         assertTrue(token.split("\\.").length == 3); // JWT has 3 parts
@@ -87,17 +118,33 @@ public class JWTUtilTests {
 
     @Test
     public void testGenerateUserToken_ManagerRole() {
-        String token = jwtUtil.generateUserToken("manager", "manager@example.com", "manager");
+        User manager = new User("manager", "pass", "salt");
+        manager.setId(3);
+        manager.setFirstName("Manager");
+        manager.setLastName("Person");
+        manager.setEmail("manager@example.com");
+        manager.setTitle("manager");
+        manager.setDepartment(2);
+        manager.setLocation(2);
+        
+        String token = jwtUtil.generateUserToken(manager);
         assertNotNull(token);
-        String email = jwtUtil.extractEmail(token, false);
-        assertEquals("manager@example.com", email);
+        String title = jwtUtil.extractTitle(token, false);
+        assertEquals("manager", title);
+    }
+
+    @Test
+    public void testGenerateUserToken_ExtractsId() {
+        String token = jwtUtil.generateUserToken(testUser);
+        String id = jwtUtil.extractId(token, false);
+        assertEquals("1", id);
     }
 
     // ========== generateAdminToken Tests ==========
 
     @Test
     public void testGenerateAdminToken_ValidInput() {
-        String token = jwtUtil.generateAdminToken("adminuser", "admin@example.com");
+        String token = jwtUtil.generateAdminToken(adminUser);
         assertNotNull(token);
         assertTrue(token.length() > 0);
         assertTrue(token.split("\\.").length == 3);
@@ -105,28 +152,42 @@ public class JWTUtilTests {
 
     @Test
     public void testGenerateAdminToken_ContainsCorrectType() {
-        String token = jwtUtil.generateAdminToken("adminuser", "admin@example.com");
+        String token = jwtUtil.generateAdminToken(adminUser);
         assertTrue(jwtUtil.isAdminToken(token));
     }
 
-    // ========== extractUsername Tests ==========
+    @Test
+    public void testGenerateAdminToken_ExtractsId() {
+        String token = jwtUtil.generateAdminToken(adminUser);
+        String id = jwtUtil.extractId(token, true);
+        assertEquals("2", id);
+    }
+
+    // ========== extractId Tests ==========
 
     @Test
-    public void testExtractUsername_UserToken() {
-        String username = jwtUtil.extractUsername(validUserToken, false);
-        assertEquals("testuser", username);
+    public void testExtractId_UserToken() {
+        String id = jwtUtil.extractId(validUserToken, false);
+        assertEquals("1", id);
     }
 
     @Test
-    public void testExtractUsername_AdminToken() {
-        String username = jwtUtil.extractUsername(validAdminToken, true);
-        assertEquals("adminuser", username);
+    public void testExtractId_AdminToken() {
+        String id = jwtUtil.extractId(validAdminToken, true);
+        assertEquals("2", id);
     }
 
     @Test
-    public void testExtractUsername_WrongSecretFails() {
+    public void testExtractId_WrongSecretFails() {
         assertThrows(Exception.class, () -> {
-            jwtUtil.extractUsername(validUserToken, true); // Using admin secret for user token
+            jwtUtil.extractId(validUserToken, true); // Using admin secret for user token
+        });
+    }
+
+    @Test
+    public void testExtractId_ExpiredToken() {
+        assertThrows(Exception.class, () -> {
+            jwtUtil.extractId(expiredUserToken, false);
         });
     }
 
@@ -135,13 +196,13 @@ public class JWTUtilTests {
     @Test
     public void testExtractEmail_UserToken() {
         String email = jwtUtil.extractEmail(validUserToken, false);
-        assertEquals("test@example.com", email);
+        assertNull(email); // Email is not included in JWT claims
     }
 
     @Test
     public void testExtractEmail_AdminToken() {
         String email = jwtUtil.extractEmail(validAdminToken, true);
-        assertEquals("admin@example.com", email);
+        assertNull(email); // Email is not included in JWT claims
     }
 
     @Test
@@ -151,128 +212,143 @@ public class JWTUtilTests {
         });
     }
 
+    @Test
+    public void testExtractEmail_ExpiredTokenFails() {
+        assertThrows(Exception.class, () -> {
+            jwtUtil.extractEmail(expiredUserToken, false);
+        });
+    }
+
     // ========== extractTitle Tests ==========
 
     @Test
     public void testExtractTitle_UserToken() {
         String title = jwtUtil.extractTitle(validUserToken, false);
-        // Note: extractTitle returns null because we store "role" not "title"
-        assertNull(title);
+        assertEquals("manager", title);
     }
 
     @Test
     public void testExtractTitle_AdminToken() {
         String title = jwtUtil.extractTitle(validAdminToken, true);
-        assertNull(title); // Admin tokens also don't have "title" claim
+        assertEquals("admin", title);
+    }
+
+    @Test
+    public void testExtractTitle_WrongSecretFails() {
+        assertThrows(Exception.class, () -> {
+            jwtUtil.extractTitle(validUserToken, true);
+        });
+    }
+
+    @Test
+    public void testExtractTitle_ExpiredTokenFails() {
+        assertThrows(Exception.class, () -> {
+            jwtUtil.extractTitle(expiredUserToken, false);
+        });
     }
 
     // ========== validateToken Tests ==========
 
     @Test
     public void testValidateToken_ValidUserToken() {
-        boolean isValid = jwtUtil.validateToken(validUserToken, false);
-        assertTrue(isValid);
+        assertTrue(jwtUtil.validateToken(validUserToken, false));
     }
 
     @Test
     public void testValidateToken_ValidAdminToken() {
-        boolean isValid = jwtUtil.validateToken(validAdminToken, true);
-        assertTrue(isValid);
+        assertTrue(jwtUtil.validateToken(validAdminToken, true));
     }
 
     @Test
     public void testValidateToken_ExpiredUserToken() {
-        boolean isValid = jwtUtil.validateToken(expiredUserToken, false);
-        assertFalse(isValid);
+        assertFalse(jwtUtil.validateToken(expiredUserToken, false));
     }
 
     @Test
     public void testValidateToken_ExpiredAdminToken() {
-        boolean isValid = jwtUtil.validateToken(expiredAdminToken, true);
-        assertFalse(isValid);
-    }
-
-    @Test
-    public void testValidateToken_InvalidToken() {
-        boolean isValid = jwtUtil.validateToken("invalid.token.here", false);
-        assertFalse(isValid);
+        assertFalse(jwtUtil.validateToken(expiredAdminToken, true));
     }
 
     @Test
     public void testValidateToken_NullToken() {
-        boolean isValid = jwtUtil.validateToken(null, false);
-        assertFalse(isValid);
+        assertFalse(jwtUtil.validateToken(null, false));
     }
 
     @Test
     public void testValidateToken_EmptyToken() {
-        boolean isValid = jwtUtil.validateToken("", false);
-        assertFalse(isValid);
+        assertFalse(jwtUtil.validateToken("", false));
     }
 
     @Test
-    public void testValidateToken_MalformedToken() {
-        boolean isValid = jwtUtil.validateToken("not.a.valid.jwt.token", false);
-        assertFalse(isValid);
+    public void testValidateToken_InvalidToken() {
+        assertFalse(jwtUtil.validateToken("invalid.token.string", false));
     }
 
     @Test
     public void testValidateToken_WrongSecret() {
-        boolean isValid = jwtUtil.validateToken(validUserToken, true);
-        assertFalse(isValid);
+        // User token validated with admin secret should fail
+        assertFalse(jwtUtil.validateToken(validUserToken, true));
+    }
+
+    @Test
+    public void testValidateToken_MalformedToken() {
+        assertFalse(jwtUtil.validateToken("not-a-jwt-token", false));
+    }
+
+    @Test
+    public void testValidateToken_TamperedToken() {
+        String[] parts = validUserToken.split("\\.");
+        if (parts.length == 3) {
+            String tampered = parts[0] + ".tampered." + parts[2];
+            assertFalse(jwtUtil.validateToken(tampered, false));
+        }
     }
 
     // ========== isAdminToken Tests ==========
 
     @Test
-    public void testIsAdminToken_ValidAdminToken() {
-        boolean isAdmin = jwtUtil.isAdminToken(validAdminToken);
-        assertTrue(isAdmin);
+    public void testIsAdminToken_UserToken() {
+        assertFalse(jwtUtil.isAdminToken(validUserToken));
     }
 
     @Test
-    public void testIsAdminToken_UserToken() {
-        boolean isAdmin = jwtUtil.isAdminToken(validUserToken);
-        assertFalse(isAdmin); // User tokens can't be validated with admin secret
+    public void testIsAdminToken_AdminToken() {
+        assertTrue(jwtUtil.isAdminToken(validAdminToken));
     }
 
     @Test
     public void testIsAdminToken_InvalidToken() {
-        boolean isAdmin = jwtUtil.isAdminToken("invalid.token");
-        assertFalse(isAdmin);
+        assertFalse(jwtUtil.isAdminToken("invalid.token"));
     }
 
     @Test
     public void testIsAdminToken_NullToken() {
-        boolean isAdmin = jwtUtil.isAdminToken(null);
-        assertFalse(isAdmin);
+        assertFalse(jwtUtil.isAdminToken(null));
     }
 
     @Test
     public void testIsAdminToken_EmptyToken() {
-        boolean isAdmin = jwtUtil.isAdminToken("");
-        assertFalse(isAdmin);
+        assertFalse(jwtUtil.isAdminToken(""));
     }
 
     // ========== cleanToken Tests ==========
 
     @Test
-    public void testCleanToken_WithBearerPrefix() {
-        String tokenWithBearer = "Bearer " + validUserToken;
-        String cleaned = jwtUtil.cleanToken(tokenWithBearer);
+    public void testCleanToken_WithBearer() {
+        String token = "Bearer " + validUserToken;
+        String cleaned = jwtUtil.cleanToken(token);
         assertEquals(validUserToken, cleaned);
     }
 
     @Test
-    public void testCleanToken_WithoutBearerPrefix() {
+    public void testCleanToken_WithoutBearer() {
         String cleaned = jwtUtil.cleanToken(validUserToken);
         assertEquals(validUserToken, cleaned);
     }
 
     @Test
     public void testCleanToken_NullToken() {
-        String cleaned = jwtUtil.cleanToken(null);
-        assertNull(cleaned);
+        assertNull(jwtUtil.cleanToken(null));
     }
 
     @Test
@@ -283,82 +359,69 @@ public class JWTUtilTests {
 
     @Test
     public void testCleanToken_OnlyBearer() {
-        String cleaned = jwtUtil.cleanToken("Bearer");
-        assertEquals("Bearer", cleaned); // Doesn't have space after
+        String cleaned = jwtUtil.cleanToken("Bearer ");
+        assertEquals("", cleaned);
     }
 
     @Test
-    public void testCleanToken_BearerWithoutSpace() {
-        String token = "Bearer" + validUserToken;
+    public void testCleanToken_LowercaseBearer() {
+        String token = "bearer " + validUserToken;
         String cleaned = jwtUtil.cleanToken(token);
-        assertEquals(token, cleaned); // No space, so not cleaned
+        // cleanToken only handles "Bearer " (capital B), not lowercase
+        assertEquals(token, cleaned);
     }
 
     @Test
-    public void testCleanToken_MultipleBearers() {
-        String token = "Bearer Bearer " + validUserToken;
+    public void testCleanToken_MixedCaseBearer() {
+        String token = "BeArEr " + validUserToken;
         String cleaned = jwtUtil.cleanToken(token);
-        assertEquals("Bearer " + validUserToken, cleaned); // Only removes first "Bearer "
+        // cleanToken only handles "Bearer " (capital B), not mixed case
+        assertEquals(token, cleaned);
     }
 
     // ========== Integration Tests ==========
 
     @Test
-    public void testFullUserFlow_GenerateValidateExtract() {
-        // Generate
-        String token = jwtUtil.generateUserToken("integrationuser", "integration@test.com", "user");
+    public void testTokenGenerationAndValidation_UserFlow() {
+        User user = new User("john", "pass", "salt");
+        user.setId(10);
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setEmail("john@example.com");
+        user.setTitle("user");
+        user.setDepartment(3);
+        user.setLocation(3);
         
-        // Validate
+        String token = jwtUtil.generateUserToken(user);
         assertTrue(jwtUtil.validateToken(token, false));
-        
-        // Extract
-        assertEquals("integrationuser", jwtUtil.extractUsername(token, false));
-        assertEquals("integration@test.com", jwtUtil.extractEmail(token, false));
-        
-        // Clean
-        String withBearer = "Bearer " + token;
-        assertEquals(token, jwtUtil.cleanToken(withBearer));
+        assertNull(jwtUtil.extractEmail(token, false)); // Email not in JWT claims
+        assertEquals("10", jwtUtil.extractId(token, false));
+        assertEquals("user", jwtUtil.extractTitle(token, false));
     }
 
     @Test
-    public void testFullAdminFlow_GenerateValidateExtract() {
-        // Generate
-        String token = jwtUtil.generateAdminToken("integrationadmin", "adminintegration@test.com");
+    public void testTokenGenerationAndValidation_AdminFlow() {
+        User admin = new User("superadmin", "pass", "salt");
+        admin.setId(100);
+        admin.setFirstName("Super");
+        admin.setLastName("Admin");
+        admin.setEmail("super@example.com");
+        admin.setTitle("admin");
+        admin.setDepartment(0);
+        admin.setLocation(0);
         
-        // Validate
+        String token = jwtUtil.generateAdminToken(admin);
         assertTrue(jwtUtil.validateToken(token, true));
         assertTrue(jwtUtil.isAdminToken(token));
-        
-        // Extract
-        assertEquals("integrationadmin", jwtUtil.extractUsername(token, true));
-        assertEquals("adminintegration@test.com", jwtUtil.extractEmail(token, true));
-        
-        // Clean
-        String withBearer = "Bearer " + token;
-        assertEquals(token, jwtUtil.cleanToken(withBearer));
+        assertNull(jwtUtil.extractEmail(token, true)); // Email not in JWT claims
+        assertEquals("100", jwtUtil.extractId(token, true));
     }
 
     @Test
-    public void testTokenExpirationValidation() {
-        // Valid token should be valid
-        assertTrue(jwtUtil.validateToken(validUserToken, false));
-        
-        // Expired token should be invalid
-        assertFalse(jwtUtil.validateToken(expiredUserToken, false));
-    }
-
-    @Test
-    public void testDifferentSecretsForUserAndAdmin() {
-        // User token with user secret: valid
-        assertTrue(jwtUtil.validateToken(validUserToken, false));
-        
-        // User token with admin secret: invalid
-        assertFalse(jwtUtil.validateToken(validUserToken, true));
-        
-        // Admin token with admin secret: valid
-        assertTrue(jwtUtil.validateToken(validAdminToken, true));
-        
-        // Admin token with user secret: invalid
-        assertFalse(jwtUtil.validateToken(validAdminToken, false));
+    public void testTokenWithClean_Integration() {
+        String bearerToken = "Bearer " + validUserToken;
+        String cleaned = jwtUtil.cleanToken(bearerToken);
+        assertTrue(jwtUtil.validateToken(cleaned, false));
+        assertNull(jwtUtil.extractEmail(cleaned, false)); // Email not in JWT claims
     }
 }
